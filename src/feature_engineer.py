@@ -60,21 +60,73 @@ class FeatureEngineer:
             include_lowest=True
         )
         
-        logger.info(\"Created time-based features: time_since_signup, purchase_hour, purchase_day_of_week, etc.\")\n        self.feature_log.append(\"Created 7 time-based features\")\n        \n        return df_feat
+        logger.info("Created time-based features: time_since_signup, purchase_hour, purchase_day_of_week, etc.")
+        self.feature_log.append("Created 7 time-based features")
+        
+        return df_feat
     
-    def map_ip_to_country(self, df: pd.DataFrame, ip_mapping: pd.DataFrame) -> pd.DataFrame:
+    _ip_mapping_cache = None  # Class-level cache for sorted IP mapping
+    
+    def map_ip_to_country(self, df: pd.DataFrame, ip_mapping: pd.DataFrame, 
+                          inplace: bool = False) -> pd.DataFrame:
         """
-        Map IP addresses to countries using the IP mapping table.
+        Map IP addresses to countries using vectorized binary search.
+        
+        Uses np.searchsorted for O(n log m) performance instead of O(n * m).
+        Caches the sorted IP mapping to avoid re-sorting on subsequent calls.
         
         Args:
             df: DataFrame with ip_address column
-            ip_mapping: DataFrame with IP to country mappings
+            ip_mapping: DataFrame with lower_bound_ip_address, upper_bound_ip_address, country
+            inplace: If True, modify df directly instead of creating a copy (faster)
             
         Returns:
             DataFrame with country column added
         """
-        df_feat = df.copy()
-        \n        # Initialize country column\n        df_feat['country'] = 'Unknown'\n        \n        logger.info(f\"Mapping {len(df_feat)} IP addresses to countries...\")\n        \n        # For performance, we'll use a vectorized approach\n        # This is a simplified version - in production, you'd want more sophisticated matching\n        for idx, row in df_feat.iterrows():\n            ip_val = row['ip_address']\n            # Find matching country\n            mask = (ip_mapping['lower_bound_ip_address'] <= ip_val) & \\\n                   (ip_mapping['upper_bound_ip_address'] >= ip_val)\n            match = ip_mapping[mask]\n            if len(match) > 0:\n                df_feat.at[idx, 'country'] = match.iloc[0]['country']\n        \n        logger.info(f\"Mapped IP addresses. Found {(df_feat['country'] != 'Unknown').sum()} matches\")\n        self.feature_log.append(\"Mapped IP addresses to countries\")\n        \n        return df_feat
+        df_feat = df if inplace else df.copy()
+        
+        logger.info(f"Mapping {len(df_feat)} IP addresses to countries...")
+        
+        # Cache the sorted IP mapping and extracted arrays
+        # Use id() of the DataFrame to detect if a new mapping was provided
+        cache_key = id(ip_mapping)
+        if (FeatureEngineer._ip_mapping_cache is None or 
+            FeatureEngineer._ip_mapping_cache.get('key') != cache_key):
+            
+            ip_sorted = ip_mapping.sort_values('lower_bound_ip_address')
+            FeatureEngineer._ip_mapping_cache = {
+                'key': cache_key,
+                'lower_bounds': ip_sorted['lower_bound_ip_address'].values,
+                'upper_bounds': ip_sorted['upper_bound_ip_address'].values,
+                'countries': ip_sorted['country'].values
+            }
+            logger.info("IP mapping cache created")
+        
+        # Extract cached arrays
+        cache = FeatureEngineer._ip_mapping_cache
+        lower_bounds = cache['lower_bounds']
+        upper_bounds = cache['upper_bounds']
+        countries = cache['countries']
+        ip_values = df_feat['ip_address'].values
+        
+        # Use searchsorted to find the potential matching range index for each IP
+        # side='right' gives us index where ip would be inserted to keep order
+        # subtracting 1 gives us the last range where lower_bound <= ip
+        indices = np.searchsorted(lower_bounds, ip_values, side='right') - 1
+        
+        # Clip indices to valid range [0, len-1]
+        indices = np.clip(indices, 0, len(lower_bounds) - 1)
+        
+        # Check if IPs actually fall within the found ranges (lower <= ip <= upper)
+        valid_mask = (ip_values >= lower_bounds[indices]) & (ip_values <= upper_bounds[indices])
+        
+        # Map countries - use 'Unknown' for IPs that don't match any range
+        df_feat['country'] = np.where(valid_mask, countries[indices], 'Unknown')
+        
+        logger.info(f"Mapped IP addresses. Found {valid_mask.sum()} matches")
+        self.feature_log.append("Mapped IP addresses to countries")
+        
+        return df_feat
     
     def create_frequency_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -89,7 +141,8 @@ class FeatureEngineer:
         df_feat = df.copy()
         
         # User transaction count
-        user_counts = df_feat['user_id'].value_counts()\n        df_feat['user_transaction_count'] = df_feat['user_id'].map(user_counts)
+        user_counts = df_feat['user_id'].value_counts()
+        df_feat['user_transaction_count'] = df_feat['user_id'].map(user_counts)
         
         # Device transaction count
         device_counts = df_feat['device_id'].value_counts()
@@ -102,7 +155,10 @@ class FeatureEngineer:
         # Deviation from user's average purchase
         df_feat['purchase_deviation'] = df_feat['purchase_value'] - df_feat['user_avg_purchase']
         
-        logger.info(\"Created frequency features: user_transaction_count, device_transaction_count, etc.\")\n        self.feature_log.append(\"Created 4 frequency features\")\n        \n        return df_feat
+        logger.info("Created frequency features: user_transaction_count, device_transaction_count, etc.")
+        self.feature_log.append("Created 4 frequency features")
+        
+        return df_feat
     
     def encode_categorical_features(self, df: pd.DataFrame, 
                                     encoding_type: str = 'onehot') -> pd.DataFrame:
@@ -118,9 +174,28 @@ class FeatureEngineer:
         """
         df_feat = df.copy()
         
-        categorical_cols = ['source', 'browser', 'sex']\n        \n        if encoding_type == 'onehot':
+        categorical_cols = ['source', 'browser', 'sex']
+        
+        if encoding_type == 'onehot':
             # One-hot encoding
-            df_feat = pd.get_dummies(df_feat, columns=categorical_cols, \n                                     prefix=categorical_cols, drop_first=True)\n            logger.info(f\"One-hot encoded {len(categorical_cols)} categorical features\")\n            self.feature_log.append(f\"One-hot encoded: {', '.join(categorical_cols)}\")\n        \n        elif encoding_type == 'label':\n            # Label encoding\n            from sklearn.preprocessing import LabelEncoder\n            \n            for col in categorical_cols:\n                if col in df_feat.columns:\n                    le = LabelEncoder()\n                    df_feat[col + '_encoded'] = le.fit_transform(df_feat[col].astype(str))\n            \n            logger.info(f\"Label encoded {len(categorical_cols)} categorical features\")\n            self.feature_log.append(f\"Label encoded: {', '.join(categorical_cols)}\")\n        \n        return df_feat
+            df_feat = pd.get_dummies(df_feat, columns=categorical_cols, 
+                                     prefix=categorical_cols, drop_first=True)
+            logger.info(f"One-hot encoded {len(categorical_cols)} categorical features")
+            self.feature_log.append(f"One-hot encoded: {', '.join(categorical_cols)}")
+        
+        elif encoding_type == 'label':
+            # Label encoding
+            from sklearn.preprocessing import LabelEncoder
+            
+            for col in categorical_cols:
+                if col in df_feat.columns:
+                    le = LabelEncoder()
+                    df_feat[col + '_encoded'] = le.fit_transform(df_feat[col].astype(str))
+            
+            logger.info(f"Label encoded {len(categorical_cols)} categorical features")
+            self.feature_log.append(f"Label encoded: {', '.join(categorical_cols)}")
+        
+        return df_feat
     
     def get_feature_report(self) -> str:
         """
@@ -130,11 +205,11 @@ class FeatureEngineer:
             String containing the feature engineering log
         """
         if not self.feature_log:
-            return \"No feature engineering operations performed yet.\"
+            return "No feature engineering operations performed yet."
         
-        report = \"Feature Engineering Report\\n\"
-        report += \"=\" * 50 + \"\\n\"
+        report = "Feature Engineering Report\n"
+        report += "=" * 50 + "\n"
         for i, log_entry in enumerate(self.feature_log, 1):
-            report += f\"{i}. {log_entry}\\n\"
+            report += f"{i}. {log_entry}\n"
         
         return report

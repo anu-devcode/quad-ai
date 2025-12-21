@@ -47,10 +47,16 @@ class Preprocessor:
         if method == 'standard':
             self.scaler = StandardScaler()
             df_scaled[columns] = self.scaler.fit_transform(df_scaled[columns])
-            logger.info(f\"Standard scaling applied to {len(columns)} features\")\n            self.preprocessing_log.append(f\"StandardScaler applied to {len(columns)} columns\")\n        \n        elif method == 'minmax':
+            logger.info(f"Standard scaling applied to {len(columns)} features")
+            self.preprocessing_log.append(f"StandardScaler applied to {len(columns)} columns")
+        
+        elif method == 'minmax':
             self.scaler = MinMaxScaler()
             df_scaled[columns] = self.scaler.fit_transform(df_scaled[columns])
-            logger.info(f\"MinMax scaling applied to {len(columns)} features\")\n            self.preprocessing_log.append(f\"MinMaxScaler applied to {len(columns)} columns\")\n        \n        return df_scaled
+            logger.info(f"MinMax scaling applied to {len(columns)} features")
+            self.preprocessing_log.append(f"MinMaxScaler applied to {len(columns)} columns")
+        
+        return df_scaled
     
     def handle_class_imbalance(self, X: pd.DataFrame, y: pd.Series,
                                sampling_strategy: float = 1.0,
@@ -69,11 +75,24 @@ class Preprocessor:
         """
         # Get class distribution before SMOTE
         class_dist_before = y.value_counts().to_dict()
-        logger.info(f\"Class distribution before SMOTE: {class_dist_before}\")\n        \n        # Apply SMOTE
-        smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)\n        X_resampled, y_resampled = smote.fit_resample(X, y)\n        \n        # Get class distribution after SMOTE\n        class_dist_after = pd.Series(y_resampled).value_counts().to_dict()
-        logger.info(f\"Class distribution after SMOTE: {class_dist_after}\")\n        \n        self.preprocessing_log.append(\n            f\"SMOTE applied: {class_dist_before} -> {class_dist_after}\"\n        )\n        \n        return X_resampled, y_resampled
+        logger.info(f"Class distribution before SMOTE: {class_dist_before}")
+        
+        # Apply SMOTE
+        smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
+        X_resampled, y_resampled = smote.fit_resample(X, y)
+        
+        # Get class distribution after SMOTE
+        class_dist_after = pd.Series(y_resampled).value_counts().to_dict()
+        logger.info(f"Class distribution after SMOTE: {class_dist_after}")
+        
+        self.preprocessing_log.append(
+            f"SMOTE applied: {class_dist_before} -> {class_dist_after}"
+        )
+        
+        return X_resampled, y_resampled
     
-    def prepare_for_modeling(self, df: pd.DataFrame, \n                            target_col: str = 'class',
+    def prepare_for_modeling(self, df: pd.DataFrame, 
+                            target_col: str = 'class',
                             scale: bool = True,
                             handle_imbalance: bool = True) -> Tuple[pd.DataFrame, pd.Series]:
         """
@@ -95,7 +114,8 @@ class Preprocessor:
         # Drop non-numeric columns that shouldn't be in the model
         non_numeric_cols = X.select_dtypes(exclude=[np.number]).columns.tolist()
         if non_numeric_cols:
-            logger.info(f\"Dropping non-numeric columns: {non_numeric_cols}\")\n            X = X.select_dtypes(include=[np.number])
+            logger.info(f"Dropping non-numeric columns: {non_numeric_cols}")
+            X = X.select_dtypes(include=[np.number])
         
         # Scale if requested
         if scale:
@@ -115,11 +135,11 @@ class Preprocessor:
             String containing the preprocessing log
         """
         if not self.preprocessing_log:
-            return \"No preprocessing operations performed yet.\"
+            return "No preprocessing operations performed yet."
         
-        report = \"Preprocessing Report\\n\"
-        report += \"=\" * 50 + \"\\n\"
+        report = "Preprocessing Report\n"
+        report += "=" * 50 + "\n"
         for i, log_entry in enumerate(self.preprocessing_log, 1):
-            report += f\"{i}. {log_entry}\\n\"
+            report += f"{i}. {log_entry}\n"
         
         return report
