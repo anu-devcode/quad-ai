@@ -4,10 +4,12 @@
 This project aims to detect fraudulent transactions using machine learning techniques. The analysis combines multiple datasets including transaction data, IP address mappings, and credit card fraud records to build a comprehensive fraud detection system.
 
 ## Business Objective
-Develop a robust machine learning model to identify fraudulent transactions in real-time, reducing financial losses and improving customer trust by:
-- Analyzing transaction patterns and user behavior
-- Identifying high-risk transactions based on geographic and temporal features
-- Minimizing false positives to maintain customer satisfaction
+Adey Innovations Inc. aims to protect its e-commerce and banking ecosystem by detecting fraudulent transactions in real-time. This project focuses on:
+- **Financial Security**: Identifying and blocking fraudulent activities to prevent monetary loss.
+- **User Trust**: Balancing rigorous security with a frictionless consumer experience by minimizing false positives.
+- **Pattern Recognition**: Analyzing geographic, temporal, and user behavioral data to stay ahead of sophisticated fraud patterns.
+
+📊 **View the [Interim Report](file:///C:/Users/Mohammed/.gemini/antigravity/brain/1249fc4d-f56d-446a-b4f5-bd5d3c162eb8/interim_report.md)** for a detailed analysis of our progress.
 
 ## Datasets
 The project uses three main datasets:
