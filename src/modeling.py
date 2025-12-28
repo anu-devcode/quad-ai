@@ -101,7 +101,7 @@ class ModelTrainer:
             cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.random_state)
             search = RandomizedSearchCV(
                 rf, param_distributions=param_dist, n_iter=10, 
-                cv=cv, scoring='f1', n_jobs=-1, random_state=self.random_state
+                cv=cv, scoring='f1', n_jobs=1, random_state=self.random_state
             )
             search.fit(X_train, y_train)
             model = search.best_estimator_
