@@ -97,7 +97,7 @@ class ModelTrainer:
                 'min_samples_leaf': [1, 2, 4],
                 'bootstrap': [True, False]
             }
-            rf = RandomForestClassifier(random_state=self.random_state)
+            rf = RandomForestClassifier(random_state=self.random_state, n_jobs=1)
             cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.random_state)
             search = RandomizedSearchCV(
                 rf, param_distributions=param_dist, n_iter=10, 
@@ -171,3 +171,27 @@ class ModelTrainer:
                 'AUC-PR': metrics['auc_pr']
             }
         return pd.DataFrame(comparison).T
+
+    def plot_feature_importance(self, model: Any, feature_names: list, top_n: int = 10, model_name: str = "Model"):
+        """
+        Plot feature importance for a given model.
+        
+        Args:
+            model: Trained model (Random Forest or similar)
+            feature_names: List of feature names
+            top_n: Number of top features to show
+            model_name: Name of the model for the plot title
+        """
+        if not hasattr(model, 'feature_importances_'):
+            logger.error(f"The model {model_name} does not support feature importance.")
+            return
+            
+        importances = model.feature_importances_
+        indices = np.argsort(importances)[::-1]
+        
+        plt.figure(figsize=(10, 6))
+        plt.title(f"Top {top_n} Feature Importances - {model_name}")
+        sns.barplot(x=importances[indices[:top_n]], y=np.array(feature_names)[indices[:top_n]])
+        plt.xlabel('Relative Importance')
+        plt.tight_layout()
+        plt.show()
