@@ -9,10 +9,13 @@ import numpy as np
 import logging
 from typing import Dict, Any, Tuple, Optional
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, cross_validate, RandomizedSearchCV
 from sklearn.metrics import (
     precision_recall_curve, auc, f1_score, confusion_matrix, 
     classification_report, accuracy_score, precision_score, recall_score
 )
+from joblib import parallel_backend
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -83,6 +86,70 @@ class ModelTrainer:
         self.models['logistic_regression'] = model
         return model
 
+    def train_ensemble_random_forest(self, X_train: pd.DataFrame, y_train: pd.Series, 
+                                     tune: bool = False, **kwargs) -> RandomForestClassifier:
+        """Train a Random Forest ensemble model."""
+        if tune:
+            logger.info("Performing hyperparameter tuning for Random Forest...")
+            param_dist = {
+                'n_estimators': [50, 100, 200],
+                'max_depth': [None, 10, 20, 30],
+                'min_samples_split': [2, 5, 10],
+                'min_samples_leaf': [1, 2, 4],
+                'bootstrap': [True, False]
+            }
+            rf = RandomForestClassifier(random_state=self.random_state, n_jobs=1)
+            cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.random_state)
+            search = RandomizedSearchCV(
+                rf, param_distributions=param_dist, n_iter=10, 
+                cv=cv, scoring='f1', n_jobs=1, random_state=self.random_state
+            )
+            
+            # Force sequential backend to avoid pickling issues on Windows/Python 3.13
+            with parallel_backend('sequential'):
+                search.fit(X_train, y_train)
+                
+            model = search.best_estimator_
+            logger.info(f"Best parameters found: {search.best_params_}")
+        else:
+            logger.info("Training Random Forest model with default hyperparameters...")
+            model = RandomForestClassifier(random_state=self.random_state, **kwargs)
+            model.fit(X_train, y_train)
+            
+        self.models['random_forest'] = model
+        return model
+
+    def cross_validate_model(self, model: Any, X: pd.DataFrame, y: pd.Series, 
+                             n_splits: int = 5) -> Dict[str, Any]:
+        """
+        Perform stratified K-Fold cross-validation.
+        
+        Args:
+            model: Model to validate
+            X: Features
+            y: Target
+            n_splits: Number of folds
+            
+        Returns:
+            Dictionary with mean and std of metrics
+        """
+        logger.info(f"Performing {n_splits}-fold Stratified K-Fold cross-validation...")
+        cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=self.random_state)
+        
+        # Define metrics to track
+        scoring = ['accuracy', 'precision', 'recall', 'f1']
+        
+        cv_results = cross_validate(model, X, y, cv=cv, scoring=scoring, return_train_score=False)
+        
+        summary = {}
+        for metric in scoring:
+            mean = cv_results[f'test_{metric}'].mean()
+            std = cv_results[f'test_{metric}'].std()
+            summary[metric] = {'mean': mean, 'std': std}
+            logger.info(f"  {metric.capitalize()}: {mean:.4f} (+/- {std:.4f})")
+            
+        return summary
+
     def plot_confusion_matrix(self, model_name: str):
         """Plot confusion matrix for a given model."""
         if model_name not in self.results:
@@ -109,3 +176,27 @@ class ModelTrainer:
                 'AUC-PR': metrics['auc_pr']
             }
         return pd.DataFrame(comparison).T
+
+    def plot_feature_importance(self, model: Any, feature_names: list, top_n: int = 10, model_name: str = "Model"):
+        """
+        Plot feature importance for a given model.
+        
+        Args:
+            model: Trained model (Random Forest or similar)
+            feature_names: List of feature names
+            top_n: Number of top features to show
+            model_name: Name of the model for the plot title
+        """
+        if not hasattr(model, 'feature_importances_'):
+            logger.error(f"The model {model_name} does not support feature importance.")
+            return
+            
+        importances = model.feature_importances_
+        indices = np.argsort(importances)[::-1]
+        
+        plt.figure(figsize=(10, 6))
+        plt.title(f"Top {top_n} Feature Importances - {model_name}")
+        sns.barplot(x=importances[indices[:top_n]], y=np.array(feature_names)[indices[:top_n]])
+        plt.xlabel('Relative Importance')
+        plt.tight_layout()
+        plt.show()

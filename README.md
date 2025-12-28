@@ -103,10 +103,11 @@ df_clean = cleaner.handle_missing_values(df)
 - Feature importance: Time since signup and transaction amount are strong indicators
 - **Task 2a Results**: Successfully trained a baseline Logistic Regression model with reporting on AUC-PR, F1-Score, and Confusion Matrix.
 
-## Task 2a: Data Preparation and Baseline Model
-- **Stratified Split**: Implemented stratified train-test splits (80/20) for both datasets to preserve class distributions.
-- **Baseline Models**: Established baseline performance using Logistic Regression.
-- **Evaluation**: Reported AUC-PR, F1-Score, and Confusion Matrices.
+## Task 2: Model Training and Evaluation (Interim-2)
+Our latest progress includes both Task 2a and Task 2b requirements:
+- **Task 2a (Baseline)**: Established baseline performance using Logistic Regression with stratified splitting.
+- **Task 2b (Ensemble)**: Developed a tuned Random Forest model with 5-fold Stratified Cross-Validation.
+- **Evaluation**: Comprehensive comparison of models using AUC-PR, F1-Score, and reporting mean/std across CV folds.
 
 ## Next Steps
 1. Model explainability using SHAP or LIME
