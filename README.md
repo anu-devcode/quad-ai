@@ -57,12 +57,14 @@ fraud-detection-model/
 │   ├── 01_data_cleaning.ipynb
 │   ├── 02_exploratory_data_analysis.ipynb
 │   ├── 03_feature_engineering.ipynb
-│   └── 04_class_imbalance_handling.ipynb
+│   ├── 04_class_imbalance_handling.ipynb
+│   └── 05_model_training_and_evaluation.ipynb
 ├── src/
 │   ├── data_loader.py
 │   ├── data_cleaner.py
 │   ├── feature_engineer.py
-│   └── preprocessor.py
+│   ├── preprocessor.py
+│   └── modeling.py
 ├── tests/                # Unit tests
 ├── models/               # Trained models
 ├── docs/                 # Documentation
@@ -99,12 +101,18 @@ df_clean = cleaner.handle_missing_values(df)
 - Time-based patterns: Higher fraud rates during specific hours
 - Geographic insights: Certain regions show elevated fraud risk
 - Feature importance: Time since signup and transaction amount are strong indicators
+- **Task 2a Results**: Successfully trained a baseline Logistic Regression model with reporting on AUC-PR, F1-Score, and Confusion Matrix.
+
+## Task 2a: Data Preparation and Baseline Model
+- **Stratified Split**: Implemented stratified train-test splits (80/20) for both datasets to preserve class distributions.
+- **Baseline Models**: Established baseline performance using Logistic Regression.
+- **Evaluation**: Reported AUC-PR, F1-Score, and Confusion Matrices.
 
 ## Next Steps
-1. Model training with balanced dataset
-2. Hyperparameter tuning
-3. Model evaluation and comparison
-4. Production deployment pipeline
+1. Model explainability using SHAP or LIME
+2. API development for real-time fraud prediction
+3. Containerization for deployment
+4. Continuous integration and monitoring
 
 ## Contributors
 - Mohammed Sultan
