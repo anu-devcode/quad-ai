@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Git
+.git/
+.gitignore
+
+# Editor
+.vscode/
+
+# Local databases and artifacts
+*.sqlite3
+*.db
+
+# Build outputs
+build/
+dist/
+
+# Node
+node_modules/
