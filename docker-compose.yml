@@ -1,0 +1,25 @@
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: campus-fastapi
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    container_name: campus-django
+    depends_on:
+      - fastapi
+    environment:
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: "*"
+      FRAUD_MODEL_API_URL: "http://fastapi:8001/predict"
+      FRAUD_MODEL_API_TIMEOUT_SECONDS: "8"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
