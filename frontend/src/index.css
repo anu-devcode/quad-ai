@@ -6,26 +6,26 @@
 
 @layer base {
   :root {
-    --background: #faf8ff;
-    --on-background: #131b2e;
-    --surface-container-low: #f5f7ff;
-    --surface-container: #eaedff;
-    --surface-container-high: #e0e4ff;
-    --surface-container-highest: #dae2fd;
-    --surface-container-lowest: #ffffff;
-    --on-surface: #131b2e;
-    --on-surface-variant: #45464d;
-    --inverse-surface: #283044;
-    --on-inverse-surface: #faf8ff;
-    --outline-variant: rgba(198, 198, 205, 0.15);
-    --primary: #3980f4;
-    --primary-dim: #adc6ff;
-    --tertiary: #009668;
-    --tertiary-container: #6ffbbe;
-    --secondary-container: #dae2fd;
-    --on-secondary-container: #3f465c;
-    --error: #93000a;
-    --error-container: #ffdad6;
+    --background: #0a0c10;
+    --on-background: #f0f2f5;
+    --surface-container-low: #11141b;
+    --surface-container: #1a1e26;
+    --surface-container-high: #242a35;
+    --surface-container-highest: #2e3544;
+    --surface-container-lowest: #050608;
+    --on-surface: #f0f2f5;
+    --on-surface-variant: #94a3b8;
+    --inverse-surface: #f0f2f5;
+    --on-inverse-surface: #0a0c10;
+    --outline-variant: rgba(148, 163, 184, 0.1);
+    --primary: #6366f1;
+    --primary-dim: #818cf8;
+    --tertiary: #10b981;
+    --tertiary-container: #064e3b;
+    --secondary-container: #334155;
+    --on-secondary-container: #e2e8f0;
+    --error: #ef4444;
+    --error-container: #7f1d1d;
 
     color: var(--on-surface);
     background-color: var(--background);
@@ -84,11 +84,19 @@
   }
 
   .premium-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 50%, #7c3aed 100%);
   }
 
   .glass-surface {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }

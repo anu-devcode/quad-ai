@@ -1,13 +1,25 @@
-import { Link } from 'react-router-dom'
-import SiteHeader from '../components/SiteHeader'
+import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { PremiumButton, SurfaceCard } from '../components/ui'
+import { Navigate } from 'react-router-dom'
 
 function AuthPage() {
-  return (
-    <div className="relative px-4 pb-20 pt-6 sm:px-8 sm:pt-8 lg:px-12">
-      <SiteHeader />
+  const { isAuthenticated, login } = useAuth()
+  const [activeTab, setActiveTab] = useState('signin')
 
-      <main className="mx-auto mt-8 grid max-w-7xl gap-8 sm:mt-12 lg:grid-cols-2">
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard/home" replace />
+  }
+
+  const handleSubmit = (e, role) => {
+    e.preventDefault()
+    login(role)
+  }
+
+  return (
+    <div className="relative px-4 pb-20 pt-8 sm:px-8 sm:pt-12 lg:px-12">
+      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
+        {/* Left panel — branding */}
         <SurfaceCard level="lowest" className="premium-gradient p-8 text-white sm:p-12">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-dim">Secure Authorization</p>
           <h1 className="mt-4 font-display text-4xl font-bold leading-tight sm:mt-6 sm:text-5xl">
@@ -28,17 +40,34 @@ function AuthPage() {
           </div>
         </SurfaceCard>
 
+        {/* Right panel — form */}
         <SurfaceCard level="lowest" className="p-8 sm:p-12">
+          {/* Tab Switcher */}
           <div className="mb-8 flex rounded-md bg-surface-low p-1">
-            <button className="flex-1 rounded bg-surface-lowest py-2.5 text-sm font-bold text-on-surface shadow-premium">
+            <button
+              onClick={() => setActiveTab('signin')}
+              className={`flex-1 rounded py-2.5 text-sm font-bold transition-all duration-200 ${
+                activeTab === 'signin'
+                  ? 'bg-surface-lowest text-on-surface shadow-premium'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
               Sign In
             </button>
-            <button className="flex-1 py-2.5 text-sm font-bold text-on-surface-variant hover:text-on-surface">
+            <button
+              onClick={() => setActiveTab('sync')}
+              className={`flex-1 rounded py-2.5 text-sm font-bold transition-all duration-200 ${
+                activeTab === 'sync'
+                  ? 'bg-surface-lowest text-on-surface shadow-premium'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
               Account Sync
             </button>
           </div>
 
-          <form className="space-y-6">
+          {/* Form */}
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <label className="block">
               <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Institutional Email</span>
               <input
@@ -63,20 +92,30 @@ function AuthPage() {
             </label>
 
             <div className="grid gap-4 pt-4 sm:grid-cols-2">
-              <Link to="/dashboard/home" className="w-full">
-                <PremiumButton variant="primary" className="w-full">
-                  User Protocol
-                </PremiumButton>
-              </Link>
-              <Link to="/admin" className="w-full">
-                <PremiumButton variant="secondary" className="w-full">
-                  Admin Console
-                </PremiumButton>
-              </Link>
+              <PremiumButton
+                variant="primary"
+                className="w-full"
+                onClick={(e) => handleSubmit(e, 'user')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+                User Dashboard
+              </PremiumButton>
+              <PremiumButton
+                variant="secondary"
+                className="w-full"
+                onClick={(e) => handleSubmit(e, 'admin')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
+                Admin Console
+              </PremiumButton>
             </div>
           </form>
         </SurfaceCard>
-      </main>
+      </div>
     </div>
   )
 }
