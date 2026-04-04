@@ -9,7 +9,7 @@ export function SurfaceCard({ className = '', children, level = 'default' }) {
 
   return (
     <article
-      className={`animate-enter rounded-xl p-6 transition-all duration-300 hover:shadow-premium-hover ${levels[level]} ${className}`}
+      className={`animate-enter rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium-hover ${levels[level]} ${className}`}
     >
       {children}
     </article>
@@ -39,11 +39,11 @@ export function SectionHeading({ overline, title, action }) {
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
         {overline && (
-          <p className="text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary/85">
             {overline}
           </p>
         )}
-        <h2 className="mt-1 font-display text-xl font-semibold text-on-surface sm:text-2xl">
+        <h2 className="mt-2 font-display text-xl font-bold text-on-surface sm:text-2xl">
           {title}
         </h2>
       </div>
@@ -54,17 +54,20 @@ export function SectionHeading({ overline, title, action }) {
 
 export function PremiumButton({ variant = 'primary', children, className = '', ...props }) {
   const variants = {
-    primary: 'premium-gradient text-white shadow-premium hover:brightness-105 active:scale-95',
-    secondary: 'bg-surface-highest text-on-surface hover:bg-surface-high',
-    tertiary: 'bg-transparent text-on-surface hover:bg-on-surface/5',
+    primary: 'premium-gradient text-white shadow-premium hover:brightness-110 active:scale-95',
+    secondary: 'bg-surface-highest text-on-surface border border-white/10 hover:bg-surface-high active:scale-95',
+    tertiary: 'bg-transparent text-on-surface hover:bg-on-surface/5 active:scale-95',
   }
 
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${variants[variant]} ${className}`}
+      className={`group relative inline-flex items-center justify-center overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold tracking-wide transition-all duration-300 ${variants[variant]} ${className}`}
       {...props}
     >
-      {children}
+      {/* Interactive Shimmer Overlay */}
+      <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+      
+      <span className="relative z-10">{children}</span>
     </button>
   )
 }

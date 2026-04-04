@@ -1,124 +1,121 @@
-import { Link } from 'react-router-dom'
-import { PremiumButton, ProgressTrack, ScoreRing, SectionHeading, SurfaceCard, TokenPill } from '../../components/ui'
-import { userProfile, userTransactions } from '../../data/mockData'
-
-function txPill(status) {
-  if (status === 'Completed') return 'good'
-  if (status === 'Pending') return 'warn'
-  return 'neutral'
-}
-
-function amountText(amount) {
-  const sign = amount > 0 ? '+' : '-'
-  return `${sign}$${Math.abs(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
+import { useAuth } from '../../context/AuthContext'
+import { SurfaceCard } from '../../components/ui'
 
 function DashboardHome() {
+  const { user } = useAuth()
+  
+  const score = 742
+  const trustScore = 85
+  const confidence = 98
+  const riskLevel = 'Low'
+
   return (
-    <section className="space-y-6">
-      {/* Primary Balance Section */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <SurfaceCard level="lowest" className="lg:col-span-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant">
-            Aggregate Liquidity
-          </p>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-            <h2 className="font-display text-5xl font-bold tracking-tight text-on-surface sm:text-6xl">
-              ${userProfile.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </h2>
-            <div className="mb-2">
-              <TokenPill tone="good">+{userProfile.monthlyGain}% Periodic Growth</TokenPill>
-            </div>
-          </div>
-          <div className="mt-8 flex gap-3">
-            <Link to="/dashboard/send" className="flex-1">
-              <PremiumButton variant="primary" className="w-full">Send Assets</PremiumButton>
-            </Link>
-            <Link to="/dashboard/loan" className="flex-1">
-              <PremiumButton variant="secondary" className="w-full">Request Credit</PremiumButton>
-            </Link>
-          </div>
-        </SurfaceCard>
-
-        <SurfaceCard level="highest" className="flex flex-col justify-center border-l-2 border-primary/20">
-          <SectionHeading overline="Trust Engine" title="Sovereign Compliance" />
-          <p className="text-sm leading-relaxed text-on-surface-variant">
-            Activity is <span className="font-bold text-on-surface">optimal</span>.
-            Eligible for <span className="font-bold text-primary">15% expansion</span> based on fiduciary history.
-          </p>
-          <button className="mt-4 self-start text-[11px] font-bold uppercase tracking-[0.05em] text-primary hover:underline">
-            View Analysis →
-          </button>
-        </SurfaceCard>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-5">
-        <SurfaceCard level="default" className="md:col-span-3">
-          <SectionHeading
-            overline="Journal Entry"
-            title="Recent Activity"
-            action={<Link to="/dashboard/history" className="text-[11px] font-bold uppercase tracking-[0.05em] text-primary">View Ledger</Link>}
-          />
-          <div className="space-y-1">
-            {userTransactions.slice(0, 4).map((tx) => (
-              <div
-                key={tx.id}
-                className="group flex items-center gap-4 rounded-lg p-3 transition-colors hover:bg-background/50"
-              >
-                <div className="grid h-10 w-10 place-items-center rounded bg-surface-highest text-[10px] font-bold text-on-surface-variant group-hover:bg-surface-lowest transition-colors">
-                  TX
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-on-surface">{tx.merchant}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-on-surface-variant">{tx.category} • {tx.age}</p>
-                </div>
-                <div className="text-right">
-                  <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-primary' : 'text-on-surface'}`}>
-                    {amountText(tx.amount)}
-                  </p>
-                  <div className="mt-0.5">
-                    <TokenPill tone={txPill(tx.status)}>{tx.status}</TokenPill>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SurfaceCard>
-
-        <SurfaceCard level="lowest" className="md:col-span-2">
-          <p className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">
-            Fiduciary Credit Rating
-          </p>
-          <div className="mt-6">
-            <ScoreRing score={userProfile.creditScore} />
-          </div>
-          <div className="mt-6 text-center">
-            <TokenPill tone="info">High Confidence Integrity</TokenPill>
-            <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-on-surface-variant">
-              Score improved by <span className="font-bold text-on-surface">12 points</span> in the current verification cycle.
-            </p>
-          </div>
-        </SurfaceCard>
-      </div>
-
-      <SurfaceCard level="high" className="premium-gradient relative overflow-hidden text-white">
-        <div className="relative z-10">
-          <h3 className="font-display text-2xl font-bold sm:text-3xl">Integrity Insight Report</h3>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed opacity-90">
-            Current debt-to-income ratio is in calculations. Top 5 percentile of institutional participants.
-            Maintain current velocity to unlock Sovereign Tier.
-          </p>
-          <div className="mt-8 max-w-md rounded-xl bg-white/10 p-5 backdrop-blur-sm">
-            <div className="mb-3 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.1em]">
-              <span>Emergency Liquidity Pool</span>
-              <span>85% Funded</span>
-            </div>
-            <ProgressTrack value={85} />
-          </div>
+    <div className="space-y-10 animate-fade-in">
+      <header className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12 animate-slide-up">
+        <div>
+           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-4 italic">[ Smart Overview ]</p>
+           <h1 className="font-display text-4xl font-extrabold text-white tracking-tight leading-none italic uppercase">
+              Operational <span className="text-gradient">Integrity</span>
+           </h1>
+           <p className="text-on-surface-variant font-light mt-4 italic">Welcome, {user?.name}. Your financial trust is evolving.</p>
         </div>
-        <div className="absolute -bottom-12 -right-12 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-      </SurfaceCard>
-    </section>
+        <div className="flex gap-4">
+           <SurfaceCard className="p-6 bg-white/5 border-white/5 text-center px-10">
+              <p className="text-[10px] uppercase text-on-surface-variant mb-2 font-black italic tracking-widest">Trust Index</p>
+              <p className="text-3xl font-black text-tertiary italic">{trustScore}%</p>
+           </SurfaceCard>
+        </div>
+      </header>
+
+      <div className="grid gap-8 lg:grid-cols-12">
+        {/* Score Gauge Section */}
+        <div className="lg:col-span-4 translate-y-[-20px] animate-slide-up stagger-1">
+           <SurfaceCard className="glass-surface p-10 flex flex-col items-center justify-center text-center border-white/5 relative overflow-hidden h-full group hover:shadow-premium transition-all">
+              <div className="relative h-64 w-64 mb-10 group">
+                 {/* Circular Gauge SVG */}
+                 <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-white/5" />
+                    <circle cx="50" cy="50" r="45" fill="transparent" stroke="currentColor" strokeWidth="8" 
+                            strokeDasharray="282.7" strokeDashoffset={282.7 - (282.7 * score) / 1000} 
+                            strokeLinecap="round" className="text-primary transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(99,102,241,0.5)]" />
+                 </svg>
+                 <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-6xl font-black text-white italic tracking-tighter">{score}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant italic">Credit Score</p>
+                 </div>
+              </div>
+              <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 w-full">
+                 <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Status: High Trust</p>
+                 <p className="text-xs text-on-surface-variant italic">Top 12% of operators in your region.</p>
+              </div>
+              <div className="absolute top-0 right-0 h-40 w-40 bg-primary/5 blur-3xl rounded-full" />
+           </SurfaceCard>
+        </div>
+
+        {/* METRICS & TRENDS */}
+        <div className="lg:col-span-8 flex flex-col gap-8">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <SurfaceCard className="p-6 bg-white/5 border-white/5 animate-slide-up stagger-2 hover:bg-white/10 transition-colors">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-on-surface-variant mb-4 italic">Data Confidence</p>
+                 <div className="flex items-end gap-2 mb-4">
+                    <span className="text-4xl font-black text-white italic">{confidence}%</span>
+                    <span className="text-xs text-tertiary mb-1">High ✅</span>
+                 </div>
+                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-tertiary w-[98%] animate-shimmer" />
+                 </div>
+              </SurfaceCard>
+
+              <SurfaceCard className="p-6 bg-white/5 border-white/5 animate-slide-up stagger-3 hover:bg-white/10 transition-colors">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-on-surface-variant mb-4 italic">Risk Profile</p>
+                 <div className="flex items-end gap-2 mb-4">
+                    <span className="text-4xl font-black text-white italic">{riskLevel}</span>
+                    <span className="text-xs text-tertiary mb-1">Minimal 🛡️</span>
+                 </div>
+                 <div className="flex gap-1 h-3 mt-auto">
+                    {[10, 30, 20, 15, 5, 8, 12, 6].map((h, i) => <div key={i} className="flex-1 bg-tertiary/20 rounded-t-sm" style={{height: `${h}%`}} />)}
+                 </div>
+              </SurfaceCard>
+
+              <SurfaceCard className="p-6 bg-primary/20 border-primary/20 sm:col-span-2 lg:col-span-1 animate-slide-up stagger-4 hover:shadow-premium transition-all">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-primary mb-4 italic">Action Items</p>
+                 <div className="space-y-3">
+                    <div className="text-[11px] font-bold text-white flex items-center gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Upload March SMS Proof
+                    </div>
+                    <div className="text-[11px] font-bold text-white flex items-center gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Verify Account Age
+                    </div>
+                 </div>
+                 <button className="w-full mt-6 py-2 rounded-lg bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">Go To Action Hub</button>
+              </SurfaceCard>
+            </div>
+
+           {/* Trend Graph Placeholder */}
+           <SurfaceCard className="flex-1 glass-surface p-10 border-white/5">
+              <div className="flex justify-between items-center mb-10">
+                 <h3 className="font-display text-xl font-black text-white uppercase italic underline decoration-primary/20">Evidence Evolution</h3>
+                 <div className="flex gap-4 text-[10px] font-bold text-on-surface-variant">
+                    <span className="text-primary italic">● This Year</span>
+                    <span className="italic">● Industry Avg</span>
+                 </div>
+              </div>
+              <div className="h-48 w-full relative flex items-end justify-between gap-6 px-4">
+                 {[40, 25, 45, 60, 35, 70, 50, 85, 90, 65, 75, 100].map((h, i) => (
+                    <div key={i} className="flex-1 bg-white/5 rounded-t-lg relative group transition-all hover:bg-primary/20">
+                       <div className="absolute bottom-0 w-full bg-primary/40 rounded-t-lg transition-all duration-1000 delay-[i*50ms]" style={{height: `${h}%`}} />
+                       <div className="absolute top-[-25px] left-1/2 -translateX-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-white text-[10px] px-2 py-1 rounded">{(score - 100) + h}</div>
+                    </div>
+                 ))}
+                 <div className="absolute inset-0 border-b border-white/5" />
+              </div>
+              <div className="mt-8 flex justify-between px-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-40 italic">
+                 <span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span>
+              </div>
+           </SurfaceCard>
+        </div>
+      </div>
+    </div>
   )
 }
 

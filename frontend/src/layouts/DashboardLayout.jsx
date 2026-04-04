@@ -1,14 +1,20 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from '../components/dashboard/Sidebar'
 import BottomNav from '../components/dashboard/BottomNav'
 
 const pageTitles = {
-  '/dashboard/home': 'Home',
-  '/dashboard/history': 'Transaction History',
-  '/dashboard/send': 'Send Money',
-  '/dashboard/loan': 'Loan Request',
-  '/dashboard/admin': 'Admin Console',
+  '/portal/home': 'Operational Overview',
+  '/portal/upload': 'Evidence Ingestion',
+  '/portal/insights': 'Transaction Analytics',
+  '/portal/profile': 'Credit Intelligence',
+  '/portal/status': 'Trust & Fraud Watch',
+  '/portal/history': 'Evidence History',
+  '/admin/overview': 'System KPIs',
+  '/admin/fraud': 'Fraud Monitoring',
+  '/admin/review': 'Data Review Panel',
+  '/admin/users': 'User Governance',
+  '/admin/models': 'Model Integrity',
 }
 
 function DashboardLayout() {
@@ -19,7 +25,18 @@ function DashboardLayout() {
     return <Navigate to="/auth" replace />
   }
 
-  const pageTitle = pageTitles[location.pathname] || 'Dashboard'
+  const role = user?.role || 'user'
+  const isPathAdmin = location.pathname.startsWith('/admin')
+
+  // ENFORCE SEPARATION
+  if (isPathAdmin && role !== 'admin') {
+    return <Navigate to="/portal/home" replace />
+  }
+  if (!isPathAdmin && role === 'admin') {
+    return <Navigate to="/admin/overview" replace />
+  }
+
+  const pageTitle = pageTitles[location.pathname] || 'Operational Hub'
 
   return (
     <div className="flex h-screen bg-background text-on-surface">
@@ -31,53 +48,44 @@ function DashboardLayout() {
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-16 items-center justify-between border-b border-outline-variant/40 bg-surface-lowest/70 px-4 backdrop-blur-xl sm:px-8">
-          <div className="flex items-center gap-4">
-            {/* Mobile logo */}
-            <div className="grid h-8 w-8 place-items-center rounded-lg premium-gradient text-[10px] font-bold text-white shadow-premium lg:hidden">
-              SI
-            </div>
+        <header className="flex h-20 items-center justify-between border-b border-white/5 bg-surface-container-low/70 px-8 backdrop-blur-3xl relative z-10">
+          <div className="flex items-center gap-6">
+            <Link to="/" className="lg:hidden flex items-center gap-2 mr-4">
+               <div className="h-8 w-8 rounded-lg premium-gradient grid place-items-center text-[10px] font-black text-white italic shadow-premium">Q</div>
+            </Link>
             <div>
-              <p className="hidden text-[10px] font-bold uppercase tracking-[0.08em] text-on-surface-variant sm:block">
-                Institutional Ledger
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary italic opacity-60">
+                 [ {isPathAdmin ? 'Control Hub' : 'Citizen Portal'} ]
               </p>
-              <h1 className="font-display text-lg font-semibold text-on-surface sm:text-xl">
+              <h1 className="font-display text-xl font-extrabold text-white tracking-tighter italic uppercase underline decoration-primary/20">
                 {pageTitle}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Notifications */}
-            <button className="relative grid h-9 w-9 place-items-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-high hover:text-on-surface">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-              </svg>
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
-            </button>
+          <div className="flex items-center gap-6">
+            <Link to="/" className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant hover:text-white italic transition-all decoration-white/10 underline md:flex hidden items-center gap-2">
+               <span>← Return to Public</span>
+            </Link>
 
-            {/* User avatar (mobile) */}
-            <button
-              onClick={logout}
-              className="grid h-9 w-9 place-items-center rounded-full bg-surface-highest text-xs font-bold text-on-surface-variant transition-colors hover:bg-error-container hover:text-error lg:hidden"
-              title="Sign out"
-            >
-              {user?.initials || 'U'}
-            </button>
-
-            {/* User avatar (desktop) */}
-            <div className="hidden items-center gap-3 rounded-lg px-2 py-1 lg:flex">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-surface-highest text-xs font-bold text-on-surface-variant">
-                {user?.initials || 'U'}
+            <div className="flex items-center gap-4 border-l border-white/5 pl-6">
+              <div className="text-right flex flex-col justify-center">
+                <p className="text-xs font-black text-white italic leading-tight">{user?.name}</p>
+                <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest italic opacity-40">{user?.role}</p>
               </div>
-              <p className="text-sm font-medium text-on-surface">{user?.name}</p>
+              <button 
+                 onClick={logout}
+                 className="h-10 w-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-error/10 hover:text-error transition-all"
+              >
+                 🚪
+              </button>
             </div>
           </div>
         </header>
 
         {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto pb-24 lg:pb-8">
-          <div className="mx-auto max-w-7xl animate-enter px-4 py-6 sm:px-8 sm:py-8">
+        <main className="flex-1 overflow-y-auto pb-24 lg:pb-8 relative animate-slide-up">
+          <div className="mx-auto max-w-7xl px-8 py-10">
             <Outlet />
           </div>
         </main>

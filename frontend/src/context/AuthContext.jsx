@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
       initials: 'AM',
       role,
     })
-    navigate('/dashboard/home')
+    navigate('/dashboard')
   }, [navigate])
 
   const logout = useCallback(() => {

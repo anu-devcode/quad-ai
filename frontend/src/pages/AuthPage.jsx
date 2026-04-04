@@ -1,121 +1,164 @@
 import { useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { PremiumButton, SurfaceCard } from '../components/ui'
-import { Navigate } from 'react-router-dom'
 
 function AuthPage() {
   const { isAuthenticated, login } = useAuth()
-  const [activeTab, setActiveTab] = useState('signin')
+  const navigate = useNavigate()
+  const [authStep, setAuthStep] = useState('login') // login, otp, onboarding-1, onboarding-2, onboarding-3
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [role, setRole] = useState('user')
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard/home" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
-  const handleSubmit = (e, role) => {
+  const handleLogin = (e) => {
     e.preventDefault()
-    login(role)
+    setAuthStep('otp')
+    setTimeout(() => {
+       // Auto-progress for demo
+       setAuthStep('onboarding-1')
+    }, 1500)
+  }
+
+  const completeOnboarding = (selectedRole) => {
+    const finalRole = selectedRole || role
+    login(finalRole)
+    if (finalRole === 'admin') {
+      navigate('/admin/overview')
+    } else {
+      navigate('/portal/home')
+    }
   }
 
   return (
-    <div className="relative px-4 pb-20 pt-8 sm:px-8 sm:pt-12 lg:px-12">
-      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
-        {/* Left panel — branding */}
-        <SurfaceCard level="lowest" className="premium-gradient p-8 text-white sm:p-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-dim">Secure Authorization</p>
-          <h1 className="mt-4 font-display text-4xl font-bold leading-tight sm:mt-6 sm:text-5xl">
-            Initialize Sovereign Session
-          </h1>
-          <p className="mt-6 max-w-md text-sm leading-relaxed opacity-90 sm:text-lg">
-            Continue with multi-factor biometric verification to access your institutional ledger or administrative console.
-          </p>
-          <div className="mt-10 space-y-4">
-            <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-primary-dim">Protocol Check</p>
-              <p className="mt-1 text-sm">Adaptive neural risk assessment on every sign-in</p>
-            </div>
-            <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-primary-dim">Access Control</p>
-              <p className="mt-1 text-sm">Role-based gateway routing by unit identifier</p>
-            </div>
+    <div className="relative min-h-screen bg-background overflow-hidden flex flex-col items-center justify-center p-4">
+      {/* Background Orbs */}
+      <div className="absolute left-1/4 top-1/4 h-[500px] w-[500px] rounded-full bg-primary/20 blur-[150px] pointer-events-none" />
+      <div className="absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-primary-dim/10 blur-[120px] pointer-events-none" />
+
+      <main className="relative z-10 w-full max-w-lg">
+        {/* LOGO */}
+        <div className="flex flex-col items-center mb-16">
+          <div className="grid h-20 w-20 place-items-center rounded-3xl bg-surface-container border border-white/10 shadow-premium mb-8 ring-2 ring-white/10 overflow-hidden">
+             <img src="/logo.png" alt="Q" className="h-full w-full object-cover scale-125" />
           </div>
-        </SurfaceCard>
+          <h1 className="font-display text-4xl font-extrabold text-white tracking-tighter italic uppercase underline decoration-primary/20">Quirass</h1>
+          <p className="text-on-surface-variant font-light mt-4 italic">Sovereign Financial Integrity</p>
+        </div>
 
-        {/* Right panel — form */}
-        <SurfaceCard level="lowest" className="p-8 sm:p-12">
-          {/* Tab Switcher */}
-          <div className="mb-8 flex rounded-md bg-surface-low p-1">
-            <button
-              onClick={() => setActiveTab('signin')}
-              className={`flex-1 rounded py-2.5 text-sm font-bold transition-all duration-200 ${
-                activeTab === 'signin'
-                  ? 'bg-surface-lowest text-on-surface shadow-premium'
-                  : 'text-on-surface-variant hover:text-on-surface'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setActiveTab('sync')}
-              className={`flex-1 rounded py-2.5 text-sm font-bold transition-all duration-200 ${
-                activeTab === 'sync'
-                  ? 'bg-surface-lowest text-on-surface shadow-premium'
-                  : 'text-on-surface-variant hover:text-on-surface'
-              }`}
-            >
-              Account Sync
-            </button>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-            <label className="block">
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Institutional Email</span>
-              <input
-                type="email"
-                placeholder="unit@sovereign.intel"
-                className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
-              />
-            </label>
-
-            <label className="block">
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Security Cipher</span>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
-              />
-            </label>
-
-            <label className="flex items-center gap-3 text-xs font-medium text-on-surface-variant">
-              <input type="checkbox" className="h-4 w-4 rounded border-outline-variant bg-surface-low text-primary focus:ring-primary/40" defaultChecked />
-              Maintain session trust for 14 operational cycles
-            </label>
-
-            <div className="grid gap-4 pt-4 sm:grid-cols-2">
-              <PremiumButton
-                variant="primary"
-                className="w-full"
-                onClick={(e) => handleSubmit(e, 'user')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                User Dashboard
-              </PremiumButton>
-              <PremiumButton
-                variant="secondary"
-                className="w-full"
-                onClick={(e) => handleSubmit(e, 'admin')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                </svg>
-                Admin Console
-              </PremiumButton>
+        <SurfaceCard className="glass-surface p-12 overflow-hidden border-white/5 relative">
+          
+          {/* LOGIN STEP */}
+          {authStep === 'login' && (
+            <div className="animate-enter">
+              <h2 className="text-2xl font-black text-white italic uppercase mb-8 underline decoration-primary/20">Operator Access</h2>
+              <form className="space-y-6" onSubmit={handleLogin}>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase text-on-surface-variant italic">ID: Phone Number</label>
+                   <input 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-black italic tracking-widest focus:border-primary focus:outline-none transition-all"
+                      placeholder="+251 ..."
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                   />
+                </div>
+                <PremiumButton type="submit" variant="primary" className="w-full py-4 text-sm font-black bg-primary italic">Request OTP Signal</PremiumButton>
+              </form>
+              <div className="mt-12 pt-8 border-t border-white/5 flex flex-col gap-4">
+                 <button onClick={() => completeOnboarding('admin')} className="text-[10px] font-black text-on-surface-variant hover:text-white uppercase tracking-widest italic decoration-primary/20 underline">Admin Control Override (DEMO)</button>
+                 <p className="text-[10px] text-on-surface-variant font-bold italic opacity-40 text-center uppercase tracking-widest">Global Encryption Active 🛡️</p>
+              </div>
             </div>
-          </form>
+          )}
+
+          {/* OTP STEP */}
+          {authStep === 'otp' && (
+            <div className="animate-enter text-center">
+              <h2 className="text-2xl font-black text-white italic uppercase mb-6 underline decoration-primary/20">OTP Verification</h2>
+              <p className="text-sm text-on-surface-variant italic font-light mb-10 leading-relaxed">Signal sent to <span className="font-bold text-white italic">{phoneNumber}</span>. <br/>Enter the 6-digit operational code.</p>
+              <div className="flex justify-center gap-3 mb-10">
+                 {[1,2,3,4,5,6].map(i => <div key={i} className="h-12 w-10 bg-white/5 border border-white/10 rounded-lg animate-pulse" />)}
+              </div>
+              <p className="text-[10px] text-on-surface-variant font-black italic uppercase animate-pulse">Waiting for Data Sync...</p>
+            </div>
+          )}
+
+          {/* ONBOARDING 1: Basic Info */}
+          {authStep === 'onboarding-1' && (
+            <div className="animate-enter">
+              <p className="text-[10px] font-black text-primary uppercase italic mb-2 tracking-widest underline decoration-primary/20">Step 01 / 03</p>
+              <h2 className="text-2xl font-black text-white italic uppercase mb-8">Basic Intelligence</h2>
+              <div className="space-y-6">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-on-surface-variant italic">Operational Name</label>
+                    <input className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-black italic tracking-widest" placeholder="e.g. Hagos T." />
+                 </div>
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-on-surface-variant italic">Regional Hub</label>
+                    <select className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-black italic tracking-widest appearance-none">
+                       <option>Addis Ababa Hub</option>
+                       <option>Mekelle Edge</option>
+                       <option>Nairobi Global</option>
+                    </select>
+                 </div>
+                 <PremiumButton onClick={() => setAuthStep('onboarding-2')} variant="primary" className="w-full py-4 font-black italic uppercase tracking-widest mt-6">Next Signal →</PremiumButton>
+              </div>
+            </div>
+          )}
+
+          {/* ONBOARDING 2: Financial Focus */}
+          {authStep === 'onboarding-2' && (
+            <div className="animate-enter">
+              <p className="text-[10px] font-black text-primary uppercase italic mb-2 tracking-widest underline decoration-primary/20">Step 02 / 03</p>
+              <h2 className="text-2xl font-black text-white italic uppercase mb-8">Evidence Vectors</h2>
+              <p className="text-sm text-on-surface-variant italic font-light mb-8">Select the primary financial ecosystems you operate within.</p>
+              
+              <div className="space-y-4">
+                 {[ 
+                   { name: 'Telebirr Wallet', desc: 'Ethio Telecom Mobile Data Hub' },
+                   { name: 'CBE (Commercial Bank)', desc: 'Institutional Bank Statement Audit' },
+                   { name: 'M-Pesa Global', desc: 'Regional Wallet Inference' }
+                 ].map(hub => (
+                    <div key={hub.name} className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/40 cursor-pointer group transition-all">
+                       <h4 className="text-sm font-black text-white italic uppercase group-hover:text-primary transition-colors">{hub.name}</h4>
+                       <p className="text-[10px] text-on-surface-variant italic mt-1">{hub.desc}</p>
+                    </div>
+                 ))}
+                 <PremiumButton onClick={() => setAuthStep('onboarding-3')} variant="primary" className="w-full py-4 font-black italic uppercase tracking-widest mt-8">Configure Inference Hub →</PremiumButton>
+              </div>
+            </div>
+          )}
+
+          {/* ONBOARDING 3: Initial Upload */}
+          {authStep === 'onboarding-3' && (
+            <div className="animate-enter text-center">
+              <p className="text-[10px] font-black text-primary uppercase italic mb-2 tracking-widest underline decoration-primary/20">Final Sync 03 / 03</p>
+              <h2 className="text-2xl font-black text-white italic uppercase mb-8 underline decoration-primary/20">Seed Ingestion</h2>
+              <p className="text-sm text-on-surface-variant italic font-light mb-10 leading-relaxed px-4">To generate your first Operational Score, upload one transaction screenshot or SMS proof.</p>
+              
+              <label className="group relative block aspect-video rounded-3xl bg-white/5 border-2 border-dashed border-white/10 hover:border-primary/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center p-8 mb-10">
+                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">📄</div>
+                 <p className="text-[10px] font-black text-white uppercase italic tracking-widest opacity-40">Drop Seed Evidence</p>
+              </label>
+
+              <PremiumButton onClick={() => completeOnboarding()} variant="primary" className="w-full py-4 font-black text-lg bg-primary italic shadow-premium">Initialize Hub Profile</PremiumButton>
+              <button 
+                onClick={() => completeOnboarding()}
+                className="mt-6 text-[10px] font-black text-on-surface-variant/40 hover:text-white uppercase italic underline decoration-white/10"
+              >
+                Skip Seed (Inference 0.0)
+              </button>
+            </div>
+          )}
+
+          {/* Decorative Effect */}
+          <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-2xl rounded-full" />
         </SurfaceCard>
-      </div>
+      </main>
     </div>
   )
 }
