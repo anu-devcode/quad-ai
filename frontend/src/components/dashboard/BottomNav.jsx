@@ -1,31 +1,19 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { NavLink } from 'react-router-dom'
+
+// User-only bottom nav — admin links are never rendered here
+const userLinks = [
+  { name: 'Home', icon: '🏠', path: '/portal/home' },
+  { name: 'Evidence', icon: '📤', path: '/portal/upload' },
+  { name: 'Insights', icon: '📊', path: '/portal/insights' },
+  { name: 'Loan', icon: '🏦', path: '/portal/loan' },
+  { name: 'History', icon: '📁', path: '/portal/history' },
+]
 
 function BottomNav() {
-  const { user } = useAuth()
-  const location = useLocation()
-  const currentPath = location.pathname
-
-  const userLinks = [
-    { name: 'Home', icon: '🏠', path: '/portal/home' },
-    { name: 'Evidence', icon: '📤', path: '/portal/upload' },
-    { name: 'Insights', icon: '📊', path: '/portal/insights' },
-    { name: 'History', icon: '📁', path: '/portal/history' }
-  ]
-
-  const adminLinks = [
-    { name: 'Admin', icon: '🚨', path: '/admin/overview' },
-    { name: 'Review', icon: '📥', path: '/admin/review' },
-    { name: 'Users', icon: '👥', path: '/admin/users' }
-  ]
-
-  const isPathAdmin = currentPath.startsWith('/admin')
-  const links = isPathAdmin ? adminLinks : userLinks
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/80 backdrop-blur-3xl border-t border-white/5 py-3 px-4 pb-8">
       <div className="flex items-center justify-around">
-        {links.map((link) => (
+        {userLinks.map((link) => (
           <NavLink
             key={link.path}
             to={link.path}

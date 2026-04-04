@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { SurfaceCard, PremiumButton } from '../../components/ui'
+import { useAuth } from '../../context/AuthContext'
+import { useVerification } from '../../context/VerificationContext'
 
 function DataUpload() {
+  const { user } = useAuth()
+  const { submitProof } = useVerification()
   const [step, setStep] = useState('upload') // upload, processing, review
   const [fileName, setFileName] = useState(null)
   
@@ -27,7 +31,15 @@ function DataUpload() {
   }
 
   const handleApprove = () => {
-     alert('Data synchronized to your Hub Profile.')
+     submitProof({
+       ownerPhone: user?.phone || 'unknown',
+       ownerName: user?.name || 'Anonymous Operator',
+       proofType: 'Transaction Snapshot',
+       title: `Batch Sync: ${fileName || 'unnamed_batch.png'}`,
+       notes: `AI-Extracted ${extractedData.length} entries with 98% confidence matching.`,
+       fileName: fileName || 'batch_evidence.png'
+     })
+     alert('Data synchronized to your Hub Profile. Monitoring for institutional verification signals.')
      setStep('upload')
   }
 

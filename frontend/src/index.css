@@ -49,15 +49,12 @@
     background-color: var(--background);
     overflow-x: hidden;
     line-height: 1.6;
-    background-image:
-      radial-gradient(circle at 18% 10%, rgba(47, 107, 255, 0.18) 0%, rgba(47, 107, 255, 0) 42%),
-      radial-gradient(circle at 85% 75%, rgba(18, 194, 162, 0.12) 0%, rgba(18, 194, 162, 0) 36%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0));
   }
 
   #root {
     min-height: 100vh;
     position: relative;
+    background-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -137,8 +134,65 @@
 
   .landing-vignette {
     background:
-      linear-gradient(180deg, rgba(6, 10, 18, 0.35) 0%, rgba(6, 10, 18, 0.18) 28%, rgba(6, 10, 18, 0.36) 100%),
-      radial-gradient(circle at 50% 50%, rgba(6, 10, 18, 0) 45%, rgba(6, 10, 18, 0.34) 100%);
+      linear-gradient(180deg, rgba(6, 10, 18, 0.4) 0%, rgba(6, 10, 18, 0.2) 28%, rgba(6, 10, 18, 0.4) 100%),
+      radial-gradient(circle at 50% 50%, rgba(6, 10, 18, 0) 40%, rgba(6, 10, 18, 0.4) 100%);
+    pointer-events: none;
+  }
+
+  .mesh-gradient-bg {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    background-color: var(--background);
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(224, 100%, 50%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(222, 100%, 40%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(170, 100%, 40%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, hsla(224, 100%, 40%, 0.05) 0px, transparent 50%);
+    filter: blur(80px);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .blueprint-grid {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200vw;
+    height: 200vh;
+    z-index: 1;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+    transform: perspective(1000px) rotateX(60deg);
+    opacity: 0.4;
+    animation: grid-drift 60s linear infinite;
+    pointer-events: none;
+  }
+
+  .neural-particles {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .neural-particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 50%;
+    opacity: 0.3;
+    box-shadow: 0 0 10px var(--primary);
+    animation: particle-drift var(--d) linear infinite;
+    top: var(--y);
+    left: var(--x);
   }
 
   .analytic-grain {
@@ -249,24 +303,16 @@
   100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
 }
 
-@keyframes driftGrid {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(72px, 72px, 0); }
+@keyframes grid-drift {
+  from { transform: perspective(1000px) rotateX(60deg) translate3d(0, 0, 0); }
+  to { transform: perspective(1000px) rotateX(60deg) translate3d(0, 80px, 0); }
 }
 
-@keyframes floatOrbA {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(48px, 26px, 0) scale(1.08); }
-}
-
-@keyframes floatOrbB {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-55px, 35px, 0) scale(1.06); }
-}
-
-@keyframes floatOrbC {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(30px, -42px, 0) scale(1.07); }
+@keyframes particle-drift {
+  from { transform: translateY(0); opacity: 0; }
+  20% { opacity: 0.4; }
+  80% { opacity: 0.4; }
+  to { transform: translateY(-100vh); opacity: 0; }
 }
 
 .animate-pulse-glow {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PremiumButton, SectionHeading, SurfaceCard } from '../components/ui'
+import { PremiumButton, SurfaceCard } from '../components/ui'
 
 function PricingPage() {
   const plans = [
@@ -36,14 +36,14 @@ function PricingPage() {
 
       <main className="relative z-10 mx-auto max-w-7xl">
         <header className="mb-24 text-center">
-          <div className="inline-block rounded-full bg-primary/10 px-4 py-1.5 border border-primary/20 mb-8 backdrop-blur-md">
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary italic">[ Operational Tiers ]</span>
+          <div className="mb-8 inline-block rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 backdrop-blur-md">
+            <span className="section-kicker">Operational Tiers</span>
           </div>
-          <h1 className="mt-6 font-display text-5xl font-extrabold leading-tight text-white mb-10 sm:text-7xl lg:text-8xl tracking-tight leading-[1.05]">
+          <h1 className="landing-title mt-6 mb-10 font-display text-5xl font-extrabold text-white sm:text-7xl lg:text-8xl">
              Build Trust <br />
              <span className="text-gradient">at Any Scale</span>
           </h1>
-          <p className="mx-auto mt-10 max-w-3xl text-xl text-on-surface-variant font-light md:text-2xl leading-relaxed">
+          <p className="body-muted mx-auto mt-10 max-w-3xl text-xl md:text-2xl">
              From individual developer experiments to global institutional fraud defense. Choose the tier that matches your operational velocity.
           </p>
         </header>
@@ -56,17 +56,17 @@ function PricingPage() {
               className={`glass-surface p-10 flex flex-col relative ${plan.popular ? 'border-primary/50 shadow-[0_0_60px_rgba(99,102,241,0.1)] scale-105 z-10' : 'border-white/5 opacity-80'}`}
             >
               {plan.popular && (
-                <div className="absolute top-0 right-10 -translate-y-1/2 bg-primary px-5 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.3em] text-white">
+                <div className="absolute right-10 top-0 -translate-y-1/2 rounded-full bg-primary px-5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white">
                   Most Deployed
                 </div>
               )}
               <div className="mb-12">
                 <h3 className="font-display text-3xl font-bold text-white mb-4 group-hover:text-primary transition-colors">{plan.name}</h3>
-                <p className="text-lg text-on-surface-variant leading-relaxed font-light">{plan.desc}</p>
+                <p className="body-muted text-lg">{plan.desc}</p>
               </div>
               <div className="mb-12">
                 <p className="text-5xl font-extrabold text-white">{plan.price}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-3 italic">Per Scaling Unit</p>
+                <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">Per Scaling Unit</p>
               </div>
               <ul className="space-y-5 mb-14 flex-1">
                 {plan.features.map(f => (
@@ -79,7 +79,7 @@ function PricingPage() {
                 ))}
               </ul>
               <Link to="/auth">
-                <PremiumButton variant={plan.popular ? 'primary' : 'secondary'} className={`w-full py-4 text-lg font-bold rounded-xl ${plan.popular ? 'bg-primary' : 'bg-white/10 text-white border border-white/10 hover:bg-white/10'}`}>
+                <PremiumButton variant={plan.popular ? 'primary' : 'secondary'} className={`w-full rounded-xl py-4 text-lg font-semibold ${plan.popular ? 'bg-primary' : 'bg-white/10 text-white border border-white/10 hover:bg-white/10'}`}>
                   {plan.cta}
                 </PremiumButton>
               </Link>
@@ -87,18 +87,18 @@ function PricingPage() {
           ))}
         </section>
 
-        <section className="mt-40 text-center max-w-4xl mx-auto">
-          <h2 className="font-display text-4xl font-bold text-white mb-12 sm:text-5xl tracking-tight leading-tight">Institutional Commitments</h2>
+        <section className="mx-auto mt-40 max-w-4xl text-center">
+          <h2 className="landing-title mb-12 font-display text-4xl font-bold text-white sm:text-5xl">Institutional Commitments</h2>
           <div className="grid gap-8 md:grid-cols-2 text-left">
             <div className="p-8 rounded-[2rem] bg-surface-container-low border border-white/5">
-              <h4 className="font-extrabold text-white text-xl mb-4 italic underline decoration-primary">Dynamic Determination</h4>
-              <p className="text-lg text-on-surface-variant font-light leading-relaxed">
+              <h4 className="mb-4 text-xl font-bold text-white">Dynamic Determination</h4>
+              <p className="body-muted text-lg">
                  We determine custom Pro and Enterprise rates based on your monthly evidence ingestion volume and required trust inference latency.
               </p>
             </div>
             <div className="p-8 rounded-[2rem] bg-surface-container-low border border-white/5">
-              <h4 className="font-extrabold text-white text-xl mb-4 italic underline decoration-primary">Scaling Units</h4>
-              <p className="text-lg text-on-surface-variant font-light leading-relaxed">
+              <h4 className="mb-4 text-xl font-bold text-white">Scaling Units</h4>
+              <p className="body-muted text-lg">
                  Our system scales effortlessly from 1 to 1M evidence events per day with guaranteed sub-second response times across all operational tiers.
               </p>
             </div>

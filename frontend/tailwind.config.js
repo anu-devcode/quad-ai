@@ -26,9 +26,9 @@ export default {
         'error-container': 'var(--error-container)',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Sora', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         premium: '0 8px 32px rgba(19, 27, 46, 0.04)',

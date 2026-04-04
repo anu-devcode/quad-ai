@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { PremiumButton, SurfaceCard } from '../components/ui'
 
 const sampleUploads = [
@@ -45,14 +44,12 @@ const sampleUploads = [
 ]
 
 function DemoPage() {
-  const [selectedFile, setSelectedFile] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState(null)
   const [showRaw, setShowRaw] = useState(false)
 
   const handleSampleClick = (sample) => {
     setIsProcessing(true)
-    setSelectedFile(null)
     setResult(null)
     
     // Simulate processing time
@@ -88,13 +85,13 @@ function DemoPage() {
 
       <main className="relative z-10 mx-auto max-w-7xl">
         <header className="mb-16 text-center">
-          <div className="inline-block rounded-full bg-primary/10 px-4 py-1.5 border border-primary/20 mb-8 backdrop-blur-md">
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary italic">[ Operational Sandbox ]</span>
+               <div className="mb-8 inline-block rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 backdrop-blur-md">
+                  <span className="section-kicker">Operational Sandbox</span>
           </div>
-          <h1 className="font-display text-4xl font-extrabold leading-tight text-white mb-6 sm:text-6xl tracking-tight leading-[1.1]">
+               <h1 className="landing-title mb-6 font-display text-4xl font-extrabold text-white sm:text-6xl">
             Evidence <span className="text-gradient">Sandbox</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-on-surface-variant font-light leading-relaxed">
+               <p className="body-muted mx-auto max-w-2xl text-lg">
             Upload financial evidence or choose a sample dataset to see how our engine transforms raw data into institutional trust signals.
           </p>
         </header>
@@ -103,19 +100,19 @@ function DemoPage() {
           {/* Left Panel: Upload / Input */}
           <div className="lg:col-span-5 space-y-8">
             <SurfaceCard className="glass-surface p-8 border-white/5">
-              <h3 className="font-display text-xl font-bold text-white mb-6 underline decoration-primary">1. Input Evidence</h3>
+              <h3 className="mb-6 font-display text-xl font-bold text-white">1. Input Evidence</h3>
               
               {/* Dropzone */}
               <label className="group relative block w-full aspect-[4/3] rounded-2xl bg-surface-container-lowest/50 border-2 border-dashed border-white/10 hover:border-primary/40 transition-all cursor-pointer overflow-hidden p-8 flex flex-col items-center justify-center text-center">
                  <input type="file" className="hidden" onChange={handleFileUpload} />
                  <div className="text-5xl mb-6 group-hover:scale-110 transition-transform group-hover:rotate-6">📎</div>
                  <p className="text-sm font-bold text-white uppercase tracking-widest mb-2">Upload Evidence</p>
-                 <p className="text-[10px] text-on-surface-variant italic">Drop M-Pesa SMS, screenshots or PDFs here</p>
+                 <p className="text-[10px] text-on-surface-variant">Drop M-Pesa SMS, screenshots or PDFs here</p>
                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </label>
 
               <div className="mt-8">
-                 <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-4 italic">Or use a sample dataset:</p>
+                 <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant/60">Or use a sample dataset:</p>
                  <div className="space-y-3">
                     {sampleUploads.map((s, i) => (
                        <button 
@@ -135,7 +132,7 @@ function DemoPage() {
             </SurfaceCard>
 
             <SurfaceCard className="glass-surface p-8 border-white/5">
-               <h4 className="text-sm font-bold text-white mb-4 italic underline decoration-primary">System Integrity Status</h4>
+               <h4 className="mb-4 text-sm font-bold text-white">System Integrity Status</h4>
                <div className="flex items-center justify-between text-xs mb-4">
                   <span className="text-on-surface-variant">AI Inference Layer</span>
                   <span className="text-tertiary">Operational 🟢</span>
@@ -158,8 +155,8 @@ function DemoPage() {
                        <div className="h-20 w-20 rounded-2xl bg-primary/20 border border-primary/40 animate-spin" />
                        <div className="absolute inset-0 flex items-center justify-center font-bold text-primary">AI</div>
                     </div>
-                    <h4 className="text-2xl font-display font-bold text-white mb-4 animate-pulse">Extracting Financial Data...</h4>
-                    <p className="text-on-surface-variant max-w-xs text-sm">Our neural models are currently parsing the metadata and cross-referencing behavioral patterns.</p>
+                    <h4 className="mb-4 animate-pulse font-display text-2xl font-bold text-white">Extracting Financial Data...</h4>
+                    <p className="max-w-xs text-sm text-on-surface-variant">Our neural models are currently parsing the metadata and cross-referencing behavioral patterns.</p>
                  </div>
               )}
 
@@ -167,7 +164,7 @@ function DemoPage() {
               {!isProcessing && !result && (
                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-40">
                     <div className="text-6xl mb-8">🔭</div>
-                    <h4 className="text-xl font-bold text-white mb-4 italic">No Evidence Selected</h4>
+                    <h4 className="mb-4 text-xl font-bold text-white">No Evidence Selected</h4>
                     <p className="text-on-surface-variant text-sm max-w-xs">Upload a transaction screenshot or select a sample from the left to begin real-time analysis.</p>
                  </div>
               )}
@@ -177,7 +174,7 @@ function DemoPage() {
                  <div className="flex-1 p-8 overflow-y-auto animate-enter">
                     <div className="flex flex-wrap justify-between items-start gap-6 mb-12">
                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 italic">Analysis Success</p>
+                          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">Analysis Success</p>
                           <h3 className="font-display text-4xl font-bold text-white tracking-tight">{result.name}</h3>
                        </div>
                        <SurfaceCard className={`p-4 border-white/10 ${getRiskColor(result.risk)}`}>
@@ -189,22 +186,22 @@ function DemoPage() {
                     {/* METRICS */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
                        <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                          <p className="text-[10px] uppercase text-on-surface-variant mb-1 italic">Alternative Score</p>
+                          <p className="mb-1 text-[10px] uppercase text-on-surface-variant">Alternative Score</p>
                           <p className="text-3xl font-bold text-white">{result.score}</p>
                        </div>
                        <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                          <p className="text-[10px] uppercase text-on-surface-variant mb-1 italic">Data Confidence</p>
+                          <p className="mb-1 text-[10px] uppercase text-on-surface-variant">Data Confidence</p>
                           <p className="text-3xl font-bold text-white">{result.confidence}</p>
                        </div>
                        <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                          <p className="text-[10px] uppercase text-on-surface-variant mb-1 italic">Data Integrity</p>
+                          <p className="mb-1 text-[10px] uppercase text-on-surface-variant">Data Integrity</p>
                           <p className="text-3xl font-bold text-white">VALID ✅</p>
                        </div>
                     </div>
 
                     {/* EXTRACTED TABLE */}
                     <div className="mb-12">
-                       <h4 className="text-sm font-bold text-white mb-6 underline decoration-primary">Parsed Transactions</h4>
+                       <h4 className="mb-6 text-sm font-bold text-white">Parsed Transactions</h4>
                        <div className="overflow-hidden rounded-xl border border-white/5">
                           <table className="w-full text-left">
                              <thead className="bg-white/5 text-[10px] uppercase tracking-widest text-on-surface-variant">
@@ -221,7 +218,7 @@ function DemoPage() {
                                       <td className="px-4 py-4 text-on-surface-variant">{row.date}</td>
                                       <td className="px-4 py-4 font-bold text-white">{row.merchant}</td>
                                       <td className="px-4 py-4 text-primary font-bold">{row.amount}</td>
-                                      <td className="px-4 py-4"><span className="px-2 py-1 rounded bg-white/5 italic">{row.status}</span></td>
+                                      <td className="px-4 py-4"><span className="rounded bg-white/5 px-2 py-1">{row.status}</span></td>
                                    </tr>
                                 ))}
                              </tbody>
@@ -231,10 +228,10 @@ function DemoPage() {
 
                     {/* INSIGHTS */}
                     <div className="mb-12">
-                       <h4 className="text-sm font-bold text-white mb-6 underline decoration-primary">AI Behavioral Insights</h4>
+                       <h4 className="mb-6 text-sm font-bold text-white">AI Behavioral Insights</h4>
                        <div className="grid gap-3">
                           {result.insights.map((insight, i) => (
-                             <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-surface-container border border-outline-variant text-xs italic text-on-surface-variant">
+                             <div key={i} className="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container p-3 text-xs text-on-surface-variant">
                                 <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                                 {insight}
                              </div>
@@ -245,7 +242,7 @@ function DemoPage() {
                     {/* RAW TOGGLE */}
                     <div className="mt-auto pt-8 border-t border-white/5">
                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 italic">System Transparency</h4>
+                          <h4 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">System Transparency</h4>
                           <button 
                              onClick={() => setShowRaw(!showRaw)}
                              className="text-[10px] font-bold text-primary hover:underline uppercase tracking-widest"

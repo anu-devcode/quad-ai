@@ -9,7 +9,7 @@ export function SurfaceCard({ className = '', children, level = 'default' }) {
 
   return (
     <article
-      className={`animate-enter rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium-hover ${levels[level]} ${className}`}
+      className={`animate-enter rounded-xl p-4 sm:p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium-hover ${levels[level]} ${className}`}
     >
       {children}
     </article>
@@ -43,7 +43,7 @@ export function SectionHeading({ overline, title, action }) {
             {overline}
           </p>
         )}
-        <h2 className="mt-2 font-display text-xl font-bold text-on-surface sm:text-2xl">
+        <h2 className="mt-1 font-display text-lg font-bold text-on-surface sm:text-2xl leading-tight">
           {title}
         </h2>
       </div>
@@ -61,7 +61,7 @@ export function PremiumButton({ variant = 'primary', children, className = '', .
 
   return (
     <button
-      className={`group relative inline-flex items-center justify-center overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold tracking-wide transition-all duration-300 ${variants[variant]} ${className}`}
+      className={`group relative inline-flex items-center justify-center overflow-hidden rounded-xl px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm font-bold tracking-tight transition-all duration-300 ${variants[variant]} ${className}`}
       {...props}
     >
       {/* Interactive Shimmer Overlay */}

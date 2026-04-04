@@ -40,15 +40,35 @@ function PublicLayout() {
   ]
 
   return (
-    <div className="min-h-screen bg-background text-on-surface">
-      <div className="analytic-grain" />
+    <div className="min-h-screen bg-transparent text-on-surface relative isolate">
+      {/* ─── Institutional Animated Background ─── */}
+      <div className="fixed inset-0 z-[-10] pointer-events-none">
+        <div className="mesh-gradient-bg" />
+        <div className="blueprint-grid" />
+        <div className="neural-particles">
+          {[...Array(12)].map((_, i) => (
+            <div 
+              key={i} 
+              className="neural-particle" 
+              style={{ 
+                '--x': `${Math.random() * 100}%`, 
+                '--y': `${Math.random() * 100}%`,
+                '--d': `${15 + Math.random() * 20}s`,
+                animationDelay: `${Math.random() * 10}s`
+              }} 
+            />
+          ))}
+        </div>
+        <div className="landing-vignette fixed inset-0" />
+      </div>
+      <div className="analytic-grain fixed inset-0 z-50 pointer-events-none" />
 
       {/* ─── Public Navbar ─── */}
       <header className="sticky top-0 z-40 w-full border-b border-outline-variant/40 bg-surface-lowest/70 backdrop-blur-xl">
-        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-8">
+        <div className="mx-auto flex h-[3.75rem] sm:h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-8">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-white/10 bg-surface-lowest shadow-premium ring-1 ring-white/10 transition-transform group-hover:scale-110">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center overflow-hidden rounded-lg border border-white/10 bg-surface-lowest shadow-premium ring-1 ring-white/10 transition-transform group-hover:scale-110">
               <img src="/logo.png" alt="Q" className="h-full w-full object-cover scale-110" />
             </div>
             <div>
@@ -179,21 +199,21 @@ function PublicLayout() {
 
       {/* ─── Integrated Public Footer ─── */}
       {!isAuthPage && (
-        <footer className="relative overflow-hidden border-t border-white/10 bg-surface-container-lowest px-4 py-28 sm:px-8 lg:px-12">
+        <footer className="relative overflow-hidden border-t border-white/5 bg-surface-container-lowest px-4 py-20 sm:px-8 lg:px-12">
           {/* Subtle Background Glow */}
           <div className="absolute right-0 bottom-0 h-96 w-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
           <div className="mx-auto max-w-7xl relative z-10">
             <div className="grid gap-20 lg:grid-cols-12">
               {/* BRANDING SECTION */}
-              <div className="lg:col-span-4 space-y-10">
+              <div className="lg:col-span-4 space-y-6">
                 <div>
-                  <div className="flex items-center gap-4 mb-8 group">
-                    <div className="grid h-10 w-10 place-items-center rounded-2xl premium-gradient text-xs font-black text-white shadow-premium ring-1 ring-white/10 group-hover:scale-110 transition-transform">Q</div>
-                    <p className="font-display text-2xl font-bold text-white tracking-tight">Quirass</p>
+                  <div className="flex items-center gap-3 mb-6 group">
+                    <div className="grid h-9 w-9 place-items-center rounded-xl premium-gradient text-[10px] font-black text-white shadow-premium ring-1 ring-white/10 group-hover:scale-110 transition-transform">Q</div>
+                    <p className="font-display text-xl font-bold text-white tracking-tight">Quirass</p>
                   </div>
-                  <p className="text-lg text-on-surface-variant leading-relaxed">
-                    Building the world's most resilient financial trust infrastructure for the next billion operators.
+                  <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed max-w-sm">
+                    The world's most resilient financial trust infrastructure for the next billion operators.
                   </p>
                 </div>
                 
@@ -204,7 +224,7 @@ function PublicLayout() {
               </div>
 
               {/* LINKS GRID */}
-              <div className="lg:col-span-8 grid gap-12 sm:grid-cols-2 md:grid-cols-4">
+              <div className="lg:col-span-8 grid gap-8 grid-cols-2 md:grid-cols-4">
                 {[
                   {
                     title: 'Infrastructure',
@@ -244,8 +264,8 @@ function PublicLayout() {
                   }
                 ].map((group) => (
                   <div key={group.title}>
-                    <h4 className="mb-8 text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">{group.title}</h4>
-                    <ul className="space-y-6 text-sm text-on-surface-variant">
+                    <h4 className="mb-4 text-[9px] font-bold uppercase tracking-[0.25em] text-white/50">{group.title}</h4>
+                    <ul className="space-y-3 test-xs sm:text-sm text-on-surface-variant">
                       {group.links.map((link) => (
                         <li key={link.label}>
                           <Link to={link.to} className="group flex items-center gap-2 transition-colors hover:text-primary">

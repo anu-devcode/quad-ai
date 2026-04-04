@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY . /app
 
-RUN chmod +x /app/docker/entrypoint.django.sh
+RUN sed -i 's/\r$//' /app/docker/entrypoint.django.sh \
+    && chmod +x /app/docker/entrypoint.django.sh
 
 EXPOSE 8000
 

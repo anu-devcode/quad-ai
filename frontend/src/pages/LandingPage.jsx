@@ -13,14 +13,7 @@ function LandingPage() {
   ]
 
   return (
-    <div className="landing-animated-shell relative overflow-hidden bg-background text-on-surface">
-      <div className="landing-animated-bg pointer-events-none absolute inset-0">
-        <div className="landing-animated-grid absolute inset-0" />
-        <div className="landing-orb landing-orb-a" />
-        <div className="landing-orb landing-orb-b" />
-        <div className="landing-orb landing-orb-c" />
-        <div className="landing-vignette absolute inset-0" />
-      </div>
+    <div className="landing-animated-shell relative overflow-hidden bg-transparent text-on-surface">
 
       {/* ─── Hero Section ─── */}
       <section className="relative overflow-hidden px-4 pb-32 pt-20 sm:px-8 sm:pt-32 lg:px-12">
@@ -96,7 +89,7 @@ function LandingPage() {
       </section>
 
       {/* ─── How It Works (3-Step Feature Grid) ─── */}
-      <section id="how-it-works" className="relative px-4 py-40 sm:px-8 lg:px-12 bg-surface-container-lowest/30">
+      <section id="how-it-works" className="relative px-4 py-40 sm:px-8 lg:px-12 bg-transparent">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-24 animate-slide-up">
             <p className="section-kicker mb-6">The Flow</p>
@@ -129,7 +122,7 @@ function LandingPage() {
       </section>
 
       {/* ─── Comparison ─── */}
-      <section className="relative px-4 py-40 sm:px-8 lg:px-12 bg-background overflow-hidden">
+      <section className="relative px-4 py-40 sm:px-8 lg:px-12 bg-transparent overflow-hidden">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-24 animate-fade-in">
              <p className="section-kicker mb-6">The Competitive Edge</p>
@@ -164,7 +157,7 @@ function LandingPage() {
       </section>
 
       {/* ─── Final CTA ─── */}
-      <section className="relative bg-surface-lowest px-4 py-44 text-center sm:px-8 lg:px-12">
+      <section className="relative bg-transparent px-4 py-44 text-center sm:px-8 lg:px-12">
         <div className="mx-auto max-w-5xl relative z-10 animate-scale-in">
           <h1 className="landing-title mb-12 font-display text-6xl font-black leading-none text-white sm:text-8xl">
             Scale Trust <br />

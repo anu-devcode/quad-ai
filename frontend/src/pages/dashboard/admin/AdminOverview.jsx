@@ -1,96 +1,193 @@
 import { SurfaceCard } from '../../../components/ui'
+import { useVerification } from '../../../context/VerificationContext'
+import { LiveDot, MiniBarTrend, RadialGauge, Sparkline, StatusBadge, TooltipHint } from '../../../components/dashboard/AdminVisuals'
+import { useAdminOps } from '../../../context/AdminOpsContext'
+import { useAuth } from '../../../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 
 function AdminOverview() {
-  const kpis = [
-    { label: 'Total Network Nodes', value: '1,245,932', delta: '+12.4%', status: 'Growing' },
-    { label: 'Active Edge Users', value: '842,105', delta: '+8.2%', status: 'Peak' },
-    { label: 'Avg Network Score', value: '715', delta: '-15 pts', status: 'Recalibrating' },
-    { label: 'System Fraud Rate', value: '0.042%', delta: '-0.005%', status: 'Secured' }
-  ]
+   const navigate = useNavigate()
+   const { user } = useAuth()
+   const { queueStats, decisionEvents, loanRequests } = useVerification()
+   const { activityLog, riskCases, riskSummary, policy, modelSummary, updateRiskCaseStatus } = useAdminOps()
+   const [message, setMessage] = useState('')
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-12">
-      <header className="mb-16">
-         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6 italic underline decoration-primary/20">[ Global Control Center ]</p>
-         <h1 className="font-display text-4xl font-extrabold text-white tracking-tight leading-tighter italic uppercase underline decoration-white/5">
-            System <span className="text-gradient">KPIs</span>
-         </h1>
-         <p className="text-xl text-on-surface-variant font-light mt-4 italic">Monitor global network health, operational velocity, and institutional fraud resilience.</p>
-      </header>
+   const kpis = [
+      { label: 'Active Verifications', value: queueStats.pending + queueStats.pendingLoanRequests, delta: '+14.2%', tone: 'warn', trend: [12, 15, 18, 21, 20, 24, 27] },
+      { label: 'High Risk Cases', value: riskSummary.high, delta: `${policy.riskThreshold}% threshold`, tone: riskSummary.high > 1 ? 'bad' : 'warn', trend: [9, 8, 7, 7, 6, 5, riskSummary.high] },
+      { label: 'Approval Throughput', value: queueStats.approved, delta: '+8.1%', tone: 'good', trend: [9, 10, 12, 15, 14, 17, 19] },
+      { label: 'Models Calibrating', value: modelSummary.calibrating, delta: `${modelSummary.active} active`, tone: 'info', trend: [1, 1, 2, 1, 1, 2, modelSummary.calibrating] },
+   ]
 
-      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-         {kpis.map((kpi, i) => (
-            <SurfaceCard key={i} className={`p-10 border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-default relative overflow-hidden group animate-slide-up stagger-${i+1}`}>
-               <div className="relative z-10 flex flex-col justify-between h-full">
-                  <div className="flex justify-between items-start mb-10">
-                     <span className="text-[10px] font-black uppercase text-on-surface-variant tracking-[0.2em] italic opacity-60 underline decoration-primary/20">{kpi.label}</span>
-                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${kpi.status === 'Secured' || kpi.status === 'Growing' ? 'text-tertiary border-tertiary/20 bg-tertiary/10' : 'text-primary border-primary/20 bg-primary/10'}`}>{kpi.status}</span>
+   const queueLoad = queueStats.total === 0 ? 0 : ((queueStats.pending + queueStats.pendingLoanRequests) / Math.max(1, queueStats.total)) * 100
+
+   const latestFeed = useMemo(() => {
+      const decisionFeed = decisionEvents.map((event) => ({
+         id: event.id,
+         title: `${event.ownerName} ${event.decision.toLowerCase()}`,
+         note: event.note || 'No note provided.',
+         createdAt: event.createdAt,
+         tone: event.decision === 'Approved' ? 'good' : 'bad',
+      }))
+
+      const activityFeed = activityLog.map((event) => ({
+         id: event.id,
+         title: event.title,
+         note: event.description,
+         createdAt: event.createdAt,
+         tone: event.kind === 'risk' || event.kind === 'user' ? 'warn' : event.kind === 'model' ? 'info' : 'neutral',
+      }))
+
+      return [...decisionFeed, ...activityFeed]
+         .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+         .slice(0, 5)
+   }, [decisionEvents, activityLog])
+
+   const actor = user?.name || 'System Admin'
+
+   const priorityCards = [
+      { label: 'Open risk cases', value: riskSummary.open, tone: 'warn' },
+      { label: 'Escalated now', value: riskSummary.escalated, tone: 'bad' },
+      { label: 'Policy threshold', value: `${policy.riskThreshold}%`, tone: 'info' },
+   ]
+
+   const handleEscalateRiskBatch = () => {
+      const openCase = riskCases.find((entry) => entry.status === 'Open')
+      if (!openCase) {
+         setMessage('No open cases available for escalation.')
+         return
+      }
+      updateRiskCaseStatus(openCase.id, 'Escalated', actor)
+      setMessage(`Escalated ${openCase.user} from Control Center.`)
+   }
+
+   return (
+      <div className="mx-auto max-w-7xl space-y-8 animate-enter">
+         <header className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+               <p className="section-kicker">AI Financial Control Center</p>
+               <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">Control Center</h1>
+               <p className="mt-2 text-sm text-on-surface-variant">Command every trust decision from one action-first workspace.</p>
+            </div>
+            <div className="flex items-center gap-3">
+               <LiveDot label="Live telemetry" />
+               <StatusBadge tone="info">Latency 14ms</StatusBadge>
+            </div>
+         </header>
+         {message ? <p className="text-sm text-tertiary">{message}</p> : null}
+
+         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {kpis.map((kpi) => (
+               <SurfaceCard key={kpi.label} className="glass-surface border-white/10 p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                     <p className="text-xs uppercase tracking-[0.18em] text-on-surface-variant">{kpi.label}</p>
+                     <StatusBadge tone={kpi.tone}>{kpi.delta}</StatusBadge>
                   </div>
-                  <p className="text-5xl font-black text-white italic tracking-tighter decoration-primary/20 underline mb-4">{kpi.value}</p>
-                  <div className="flex items-center gap-2 text-xs font-black italic text-on-surface-variant grayscale group-hover:grayscale-0 transition-opacity">
-                     <span className={kpi.delta.startsWith('+') ? 'text-tertiary' : 'text-error'}>{kpi.delta}</span>
-                     <span>vs Prior 30d</span>
+                  <p className="mt-3 text-3xl font-bold text-white">{kpi.value}</p>
+                  <div className="mt-3">
+                     <Sparkline values={kpi.trend} />
+                  </div>
+               </SurfaceCard>
+            ))}
+         </div>
+
+         <div className="grid gap-4 sm:grid-cols-3">
+            {priorityCards.map((card) => (
+               <SurfaceCard key={card.label} className="glass-surface border-white/10 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">{card.label}</p>
+                     <StatusBadge tone={card.tone}>{card.label.split(' ')[0]}</StatusBadge>
+                  </div>
+                  <p className="mt-3 text-2xl font-bold text-white">{card.value}</p>
+               </SurfaceCard>
+            ))}
+         </div>
+
+         <div className="grid gap-6 lg:grid-cols-12">
+            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-8">
+               <div className="flex items-center justify-between gap-3">
+                  <h2 className="font-display text-xl font-semibold text-white">Decision Throughput Story</h2>
+                  <TooltipHint text="Real-time blend of proof queue and loan review flow." />
+               </div>
+               <div className="mt-6 grid gap-5 md:grid-cols-3">
+                  <div className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
+                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">Queue Load</p>
+                     <div className="mt-4 flex justify-center">
+                        <RadialGauge value={queueLoad} max={100} tone={queueLoad > 70 ? 'error' : 'primary'} size={130} />
+                     </div>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
+                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">Hourly Reviews</p>
+                     <div className="mt-4">
+                        <MiniBarTrend values={[5, 7, 6, 10, 12, 11, 14, 16]} colorClass="bg-primary/70" />
+                     </div>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
+                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">Loan Approvals</p>
+                     <div className="mt-4">
+                        <MiniBarTrend values={[4, 5, 5, 6, 7, 8, 8, 9]} colorClass="bg-tertiary/70" />
+                     </div>
                   </div>
                </div>
-               <div className="absolute top-0 right-0 h-48 w-48 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
             </SurfaceCard>
-         ))}
+
+            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-4">
+               <h2 className="font-display text-xl font-semibold text-white">Action Console</h2>
+               <p className="mt-2 text-sm text-on-surface-variant">Route teams directly into the highest-impact tasks.</p>
+               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  <button onClick={() => navigate('/admin/review')} className="w-full rounded-xl bg-primary/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Open Evidence Lab</button>
+                  <button onClick={handleEscalateRiskBatch} className="w-full rounded-xl bg-error/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-error">Escalate Risk Batch</button>
+                  <button onClick={() => navigate('/admin/config')} className="w-full rounded-xl bg-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-on-surface sm:col-span-2 lg:col-span-1">Sync Policy Thresholds</button>
+               </div>
+            </SurfaceCard>
+         </div>
+
+         <div className="grid gap-6 lg:grid-cols-12">
+            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-7">
+               <div className="flex items-center justify-between">
+                  <h2 className="font-display text-xl font-semibold text-white">Live Operations Feed</h2>
+                  <StatusBadge tone="neutral">{decisionEvents.length + activityLog.length} total</StatusBadge>
+               </div>
+               <div className="mt-4 space-y-3">
+                  {latestFeed.length === 0 && <p className="text-sm text-on-surface-variant">No decisions recorded yet.</p>}
+                  {latestFeed.map((event) => (
+                     <div key={event.id} className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                           <p className="text-sm font-semibold text-on-surface sm:max-w-[70%]">{event.title}</p>
+                           <StatusBadge tone={event.tone}>Event</StatusBadge>
+                        </div>
+                        <p className="mt-1 text-xs text-on-surface-variant">{event.note}</p>
+                     </div>
+                  ))}
+               </div>
+            </SurfaceCard>
+
+            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-5">
+               <h2 className="font-display text-xl font-semibold text-white">Loan Signal Snapshot</h2>
+               <div className="mt-4 grid gap-3">
+                  {loanRequests.slice(0, 5).map((loan) => (
+                     <div key={loan.id} className="rounded-xl border border-white/10 bg-surface-low/50 px-4 py-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                           <div>
+                              <p className="text-sm font-semibold text-on-surface">{loan.ownerName}</p>
+                              <p className="text-xs text-on-surface-variant">${loan.requestedAmount.toLocaleString()}</p>
+                           </div>
+                           <StatusBadge tone={loan.status === 'Approved' ? 'good' : loan.status === 'Rejected' ? 'bad' : 'warn'}>{loan.status}</StatusBadge>
+                        </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+                           <span>Base ${loan.baseCeiling.toLocaleString()}</span>
+                           <span>•</span>
+                           <span>Adj ${loan.adjustedCeiling.toLocaleString()}</span>
+                        </div>
+                     </div>
+                  ))}
+                  {loanRequests.length === 0 ? <p className="text-sm text-on-surface-variant">No recent loan requests.</p> : null}
+               </div>
+            </SurfaceCard>
+         </div>
       </div>
-
-      <div className="grid gap-12 lg:grid-cols-12">
-        {/* NETWORK ACTIVITY BAR CHART */}
-        <div className="lg:col-span-8">
-           <SurfaceCard className="glass-surface p-14 h-full border-white/5 relative overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center mb-20">
-                 <h2 className="font-display text-2xl font-black text-white italic uppercase underline decoration-primary/20 tracking-tighter">Operational Velocity Hub</h2>
-                 <div className="flex gap-4 text-[10px] font-bold text-on-surface-variant italic opacity-60">
-                    <span>● Total Ingestions (12M)</span>
-                    <span className="text-primary italic">● Verified Scores (8.4M)</span>
-                 </div>
-              </div>
-
-              {/* Dynamic Velocity Graph */}
-              <div className="flex-1 min-h-[350px] flex items-end justify-between px-10 gap-10">
-                 {[40, 60, 55, 80, 70, 95, 45, 110, 130, 90, 85, 120].map((h, i) => (
-                    <div key={i} className="flex-1 bg-white/5 rounded-t-2xl relative group transition-all hover:bg-primary/20 cursor-help">
-                       <div className="absolute bottom-0 w-full bg-primary/40 rounded-t-2xl transition-all duration-1000 delay-[i*40ms] group-hover:bg-primary shadow-premium" style={{height: `${h/1.5}%`}} />
-                       <div className="absolute top-[-40px] left-1/2 -translateX-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-white text-[10px] px-3 py-1 rounded-lg font-black italic whitespace-nowrap shadow-premium">{(h * 12.4).toFixed(1)}k Nodes</div>
-                    </div>
-                 ))}
-                 <div className="absolute left-6 right-6 h-px bg-white/10 bottom-[0px] z-0" />
-              </div>
-              <div className="mt-12 flex justify-between px-10 text-[11px] font-black uppercase tracking-widest text-on-surface-variant opacity-40 italic">
-                 <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span>
-              </div>
-           </SurfaceCard>
-        </div>
-
-        {/* RECENT ALERTS PANEL */}
-        <div className="lg:col-span-4 h-full">
-           <SurfaceCard className="glass-surface p-12 h-full border-white/5 bg-surface-container-high/40">
-              <h2 className="font-display text-xl font-black text-white italic uppercase underline decoration-primary/20 mb-12">Critical Operations</h2>
-              <div className="space-y-10">
-                 {[ 
-                   { title: 'Neural Model Recalibration', time: '12m ago', desc: 'Auto-adjustment of trust weight vectors for M-Pesa patterns.' },
-                   { title: 'Edge Cluster Expansion', time: '4h ago', desc: 'Deployed 12 new inference nodes in East Africa Region.' },
-                   { title: 'Data Integrity Sweep', time: '1d ago', desc: 'Validated 1.2M historical score snapshots against latest risk matrix.' }
-                 ].map((log, i) => (
-                    <div key={i} className="group cursor-pointer hover:translate-x-3 transition-transform">
-                       <div className="flex justify-between items-center mb-4">
-                          <p className="text-[10px] text-primary font-black uppercase tracking-widest italic">{log.time}</p>
-                          <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded border border-white/10 uppercase font-bold text-on-surface-variant italic">Operational 🟢</span>
-                       </div>
-                       <h4 className="text-sm font-black text-white italic uppercase group-hover:text-primary transition-colors underline decoration-white/5 mb-2">{log.title}</h4>
-                       <p className="text-[10px] text-on-surface-variant font-light italic leading-relaxed">{log.desc}</p>
-                    </div>
-                 ))}
-              </div>
-              <button className="w-full mt-20 py-4 rounded-2xl border border-primary/20 text-primary text-[11px] font-black uppercase tracking-[0.2em] italic hover:bg-primary/5 transition-all shadow-premium ring-1 ring-white/5">Global Control Audit Hub</button>
-           </SurfaceCard>
-        </div>
-      </div>
-    </div>
-  )
+   )
 }
 
 export default AdminOverview
