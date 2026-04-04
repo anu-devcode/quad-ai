@@ -37,8 +37,28 @@ function DashboardLayout() {
   const pageTitle = pageTitles[location.pathname] || 'Operational Hub'
 
   return (
-    <div className="flex h-screen bg-background text-on-surface">
-      <div className="analytic-grain" />
+    <div className="flex h-screen bg-transparent text-on-surface relative isolate">
+      {/* ─── Institutional Animated Background ─── */}
+      <div className="fixed inset-0 z-[-10] pointer-events-none">
+        <div className="mesh-gradient-bg" />
+        <div className="blueprint-grid" />
+        <div className="neural-particles">
+          {[...Array(12)].map((_, i) => (
+            <div 
+              key={i} 
+              className="neural-particle" 
+              style={{ 
+                '--x': `${Math.random() * 100}%`, 
+                '--y': `${Math.random() * 100}%`,
+                '--d': `${15 + Math.random() * 20}s`,
+                animationDelay: `${Math.random() * 10}s`
+              }} 
+            />
+          ))}
+        </div>
+        <div className="landing-vignette fixed inset-0" />
+      </div>
+      <div className="analytic-grain fixed inset-0 z-50 pointer-events-none" />
 
       {/* Sidebar (desktop) */}
       <Sidebar />
