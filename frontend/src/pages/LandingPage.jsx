@@ -6,10 +6,10 @@ function LandingPage() {
   const [activeStep, setActiveStep] = useState(0)
 
   const steps = [
-    { title: 'Evidence Ingestion', icon: '📥', desc: 'Accept metadata-rich evidence from SMS, screenshots, or PDFs.' },
-    { title: 'Neural Extraction', icon: '🔍', desc: 'OCR parsing specifically tuned for messy, low-res financial metadata.' },
-    { title: 'Inference Engine', icon: '🧠', desc: 'Real-time scoring based on multi-vector behavioral patterns.' },
-    { title: 'Trust Output', icon: '🎯', desc: 'Actionable credit scores and exhaustive risk flags.' }
+    { title: 'Readiness', icon: '✅', desc: 'Check whether the OCR, scoring, and persistence layers are available.' },
+    { title: 'Intake', icon: '📥', desc: 'Submit SMS, screenshots, PDFs, or structured transactions.' },
+    { title: 'Scoring', icon: '🧮', desc: 'Blend local validation with the FastAPI model output.' },
+    { title: 'Review', icon: '🧾', desc: 'Move cases into trust, fraud, or loan decision workflows.' }
   ]
 
   return (
@@ -24,24 +24,24 @@ function LandingPage() {
 
         <div className="relative z-10 mx-auto max-w-7xl text-center">
           <div className="mb-8 inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 backdrop-blur-md animate-enter">
-            <span className="section-kicker">Financial Trust Infrastructure</span>
+            <span className="section-kicker">Workflow Console</span>
           </div>
           <h1 className="landing-title animate-fade-in stagger-1 font-display text-5xl font-extrabold text-white sm:text-7xl lg:text-8xl">
-            Build Credit & Detect Fraud <br />
-            Using <span className="text-gradient">Real Evidence</span>
+            Intake, score, and review <br />
+            <span className="text-gradient">transaction evidence</span>
           </h1>
           <p className="body-muted mx-auto mt-10 max-w-3xl text-lg sm:text-2xl animate-fade-in stagger-2">
-            We transform SMS, transaction screenshots, and financial statements into trusted data for AI-score-driven credit and fraud protection.
+            This console mirrors the backend flow: readiness checks, evidence ingestion, scoring, and case review.
           </p>
           <div className="mt-12 flex flex-wrap justify-center gap-4 animate-fade-in stagger-3">
-            <Link to="/demo">
+            <Link to="/dashboard">
               <PremiumButton variant="primary" className="px-10 py-5 text-lg font-bold shadow-premium">
-                Try Live Demo
+                Open Console
               </PremiumButton>
             </Link>
             <a href="#how-it-works">
               <PremiumButton variant="secondary" className="px-10 py-5 text-lg font-bold bg-white/5 text-white backdrop-blur-xl border border-white/10">
-                See How It Works
+                See Workflow
               </PremiumButton>
             </a>
           </div>
@@ -49,7 +49,7 @@ function LandingPage() {
           {/* INTERACTIVE PIPELINE */}
               <div className="group relative mx-auto mt-32 max-w-5xl overflow-hidden rounded-[2.25rem] border border-white/10 bg-surface-container-low p-8 shadow-2xl sm:p-12 animate-slide-up stagger-4">
              <div className="relative z-10">
-                <p className="section-kicker mb-12">The Interactive Pipeline</p>
+                <p className="section-kicker mb-12">The Workflow</p>
                 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16 relative">
                    <div className="hidden lg:block absolute top-[40px] left-[10%] right-[10%] h-0.5 pointer-events-none">
@@ -75,10 +75,10 @@ function LandingPage() {
                      <p className="body-muted mb-8 text-xl">{steps[activeStep].desc}</p>
                    <div className="flex justify-center gap-6">
                       <div className="flex items-center gap-2 text-[10px] font-bold text-tertiary bg-tertiary/10 px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
-                         Verified Proof ✅
+                         Ready Check ✅
                       </div>
                       <div className="flex items-center gap-2 text-[10px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest animate-pulse delay-75">
-                         AI Synthetic Control 🛡️
+                         Backend Aligned 🛡️
                       </div>
                    </div>
                 </div>
@@ -93,14 +93,14 @@ function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-24 animate-slide-up">
             <p className="section-kicker mb-6">The Flow</p>
-            <h2 className="landing-title font-display text-4xl font-bold text-white sm:text-6xl">Evidence-Driven <span className="text-gradient">Trust</span></h2>
+            <h2 className="landing-title font-display text-4xl font-bold text-white sm:text-6xl">Evidence-Driven <span className="text-gradient">Operations</span></h2>
           </div>
 
           <div className="grid gap-12 md:grid-cols-3">
              {[
-                { icon: '📥', title: '01. Collect', desc: 'Ingest transaction SMS payloads, screenshots, or PDF statements directly from any source.', features: ['M-Pesa / Bank SMS', 'App Screenshots', 'PDF Statements'] },
-                { icon: '⚙️', title: '02. Extract', desc: 'Deploy multi-vector OCR and parsing tuned for messy, low-res financial metadata across all providers.', features: ['OCR Parsing Layer', 'Structured Data Output', 'Metadata Validation'] },
-                { icon: '🎯', title: '03. Score', desc: 'Generate alternative credit scores and fraud risk summaries backed by behavioral pattern recognition.', features: ['Credit Scoring Engine', 'Fraud Risk Summary', 'Data Confidence Level'] }
+                { icon: '📥', title: '01. Intake', desc: 'Ingest transaction SMS payloads, screenshots, PDFs, or structured forms.', features: ['Source typing', 'OCR parsing', 'Request validation'] },
+                { icon: '⚙️', title: '02. Normalize', desc: 'Shape raw evidence into the payload that the scoring pipeline expects.', features: ['Canonical schema', 'Location/IP handling', 'Confidence extraction'] },
+                { icon: '🎯', title: '03. Review', desc: 'Route the result into trust, fraud, or loan workflows for operator action.', features: ['Risk summary', 'Admin queue', 'Loan outcome'] }
              ].map((item, i) => (
                 <SurfaceCard key={i} className={`glass-surface p-12 h-full border-white/5 group hover:border-primary/20 transition-all hover:bg-white/5 animate-slide-up stagger-${i+1}`}>
                    <div className="text-5xl mb-8 group-hover:scale-110 transition-transform bg-primary/10 h-20 w-20 rounded-2xl flex items-center justify-center">
@@ -126,23 +126,23 @@ function LandingPage() {
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-24 animate-fade-in">
              <p className="section-kicker mb-6">The Competitive Edge</p>
-             <h2 className="landing-title font-display text-5xl font-extrabold text-white sm:text-6xl">Why Not <span className="text-gradient">Banks?</span></h2>
+             <h2 className="landing-title font-display text-5xl font-extrabold text-white sm:text-6xl">Why the <span className="text-gradient">Console</span> Flow?</h2>
           </div>
 
           <div className="overflow-hidden rounded-[3rem] border border-white/10 bg-surface-container-low shadow-3xl animate-enter">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white/5 border-b border-white/10">
-                  <th className="px-10 py-8 text-xs font-semibold uppercase tracking-widest text-on-surface-variant">Feature</th>
-                  <th className="px-10 py-8 text-xs font-semibold uppercase tracking-widest text-error/70">Traditional Silos</th>
-                  <th className="px-10 py-8 text-xs font-semibold uppercase tracking-widest text-tertiary">Quirass Ecosystem</th>
+                  <th className="px-10 py-8 text-xs font-semibold uppercase tracking-widest text-on-surface-variant">Stage</th>
+                  <th className="px-10 py-8 text-xs font-semibold uppercase tracking-widest text-error/70">Generic App</th>
+                  <th className="px-10 py-8 text-xs font-semibold uppercase tracking-widest text-tertiary">Workflow Console</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {[
-                   { label: 'Evidence Link', old: 'Require Bank APIs ❌', new: 'No API needed ✅' },
-                   { label: 'Data Depth', old: 'Limited KYC Data ❌', new: 'Full Behavior Analytics ✅' },
-                   { label: 'Latency', old: '3-5 Day Approval ❌', new: 'Sub-Second Scoring ✅' }
+                   { label: 'Readiness', old: 'Unclear setup state ❌', new: 'Visible service health ✅' },
+                   { label: 'Intake', old: 'Manual copy-paste forms ❌', new: 'Structured source upload ✅' },
+                   { label: 'Review', old: 'Hidden decisioning ❌', new: 'Traceable queue actions ✅' }
                 ].map((row, i) => (
                    <tr key={i} className="group hover:bg-white/5 transition-colors animate-fade-in" style={{ animationDelay: `${(i+1)*100}ms` }}>
                        <td className="px-10 py-8 text-base font-semibold text-white">{row.label}</td>
@@ -160,21 +160,21 @@ function LandingPage() {
       <section className="relative bg-transparent px-4 py-44 text-center sm:px-8 lg:px-12">
         <div className="mx-auto max-w-5xl relative z-10 animate-scale-in">
           <h1 className="landing-title mb-12 font-display text-6xl font-black leading-none text-white sm:text-8xl">
-            Scale Trust <br />
-            Everywhere
+            Operate Trust <br />
+            From One Console
           </h1>
           <p className="body-muted mx-auto mb-16 max-w-2xl text-2xl">
-             Deployment ready. API independent. The new standard for financial verification.
+             Backend-first workflow pages, ready for API wiring.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             <Link to="/auth">
               <PremiumButton variant="primary" className="px-12 py-5 text-xl font-bold shadow-premium">
-                Launch Prototype
+                Sign In
               </PremiumButton>
             </Link>
-            <Link to="/demo">
+            <Link to="/dashboard">
               <PremiumButton variant="secondary" className="px-12 py-5 text-xl font-bold bg-white/10 text-white border-white/10">
-                Try Demo Portal →
+                Open Dashboard →
               </PremiumButton>
             </Link>
           </div>

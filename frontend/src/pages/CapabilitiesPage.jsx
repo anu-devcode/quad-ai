@@ -14,11 +14,10 @@ function CapabilitiesPage() {
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">System Capabilities</p>
             <h1 className="mt-6 font-display text-4xl font-bold leading-tight text-white sm:text-6xl lg:text-7xl">
               Engineered for <br />
-              <span className="text-gradient">Absolute Scale</span>
+              <span className="text-gradient">Workflow Scale</span>
             </h1>
             <p className="mt-8 text-xl text-on-surface-variant">
-              The Sovereign Intelligence infrastructure is built to handle high-velocity institutional movement 
-              without compromising on security or auditability.
+              The console is arranged around the backend contracts: intake, prediction, trust, and review.
             </p>
           </div>
         </header>
@@ -31,8 +30,7 @@ function CapabilitiesPage() {
               </div>
               <h3 className="font-display text-3xl font-bold text-white">Massive Throughput</h3>
               <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                Process over 50,000 transactions per second with sub-centisecond latency. 
-                Our distributed ledger architecture ensures that scale is never a bottleneck for your institution.
+                Handle large evidence bursts without changing the user flow. The UI keeps intake and review separate.
               </p>
             </div>
 
@@ -42,8 +40,7 @@ function CapabilitiesPage() {
               </div>
               <h3 className="font-display text-3xl font-bold text-white">Institutional Security</h3>
               <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                Military-grade encryption and hardware-secured keys protect every asset. 
-                Our multi-party computation (MPC) protocols ensure that no single point of failure exists.
+                Route operators into authenticated dashboard areas and keep admin actions isolated from public pages.
               </p>
             </div>
           </div>
@@ -55,8 +52,7 @@ function CapabilitiesPage() {
               </div>
               <h3 className="font-display text-3xl font-bold text-white">Regulatory Ready</h3>
               <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                Built-in compliance modules for KYC, AML, and FATF requirements. 
-                Real-time reporting and automated filing ensure that you are always audit-ready across all jurisdictions.
+                Validation logs, trust scores, and loan decisions are all visible for audit and reporting workflows.
               </p>
             </div>
 
@@ -66,8 +62,7 @@ function CapabilitiesPage() {
               </div>
               <h3 className="font-display text-3xl font-bold text-white">Global Reach</h3>
               <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-                Unified settlement layers that bridge traditional finance and digital assets. 
-                Move value across borders with the ease of an email, backed by institutional trust.
+                The same console patterns work for SMS, screenshots, PDFs, and structured submissions.
               </p>
             </div>
           </div>
@@ -76,11 +71,10 @@ function CapabilitiesPage() {
         <section className="mt-32">
           <SurfaceCard level="lowest" className="glass-surface p-12 text-center border-primary/20">
             <h2 className="font-display text-3xl font-bold text-white sm:text-4xl text-gradient">
-              Ready to Expand Your Reach?
+              Ready to enter the console?
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-on-surface-variant">
-              Join the network of forward-thinking institutions leveraging Sovereign Intelligence to 
-              define the future of digital value movement.
+              Use the same flow the backend expects, then wire the API calls when you are ready.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               <Link to="/auth">

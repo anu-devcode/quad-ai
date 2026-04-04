@@ -36,7 +36,7 @@ venv.bak/
 data/raw/
 *.csv
 *.xlsx
-*.json
+data/raw/*.json
 *.parquet
 
 # Models

@@ -165,7 +165,7 @@ def preprocess_request(req: PredictionRequest) -> np.ndarray:
     return X_final
 
 def get_risk_level(fraud_prob: float) -> str:
-    if fraud_prob < LOW_RISK_THRESHOLD:
+    if fraud_prob < LOW_RISK_THRESHOLD: 
         return "Low"
     elif fraud_prob < HIGH_RISK_THRESHOLD:
         return "Medium"

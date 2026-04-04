@@ -9,11 +9,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.db.models import Avg, Count
 from django.utils import timezone
 
-from .models import FraudAssessment, LoanAIRecommendation, LoanRequest, LoanRequestStatus, RiskLevelType, Transaction, User, ValidationLog
+from .models import ConfidenceScore, FraudAssessment, LoanAIRecommendation, LoanRequest, LoanRequestStatus, RiskLevelType, Transaction, TransactionTrust, User, ValidationLog
 from .project_verifier import ProjectVerificationService
-from .serializers import LoanDecisionSerializer, LoanRequestCreateSerializer, LoanRequestSerializer, LoanStatusSerializer, PredictionRequestSerializer, TransactionSerializer, TransactionUploadSerializer
+from .serializers import LoanDecisionSerializer, LoanRequestCreateSerializer, LoanRequestSerializer, LoanStatusSerializer, PredictionRequestSerializer, TransactionSerializer, TransactionUploadSerializer, UserSerializer
 from .services import FraudScoringService, SOURCE_CONFIDENCE_BY_TYPE
 
 
@@ -53,6 +54,77 @@ class ProjectVerificationAPIView(APIView):
     def get(self, request):
         report = ProjectVerificationService.build_report()
         return Response(report, status=status.HTTP_200_OK)
+
+
+class UserGovernanceAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        users_qs = User.objects.all().order_by('-signup_time')
+
+        total_users = users_qs.count()
+        active_users = users_qs.filter(is_active=True).count()
+        inactive_users = total_users - active_users
+
+        users_payload = UserSerializer(users_qs[:100], many=True).data
+
+        return Response(
+            {
+                'summary': {
+                    'total_users': total_users,
+                    'active_users': active_users,
+                    'inactive_users': inactive_users,
+                },
+                'users': users_payload,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ModelMonitoringAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        total_assessments = FraudAssessment.objects.count()
+        flagged_assessments = FraudAssessment.objects.filter(prediction=1).count()
+
+        risk_breakdown = {
+            'low': FraudAssessment.objects.filter(risk_level=RiskLevelType.LOW).count(),
+            'medium': FraudAssessment.objects.filter(risk_level=RiskLevelType.MEDIUM).count(),
+            'high': FraudAssessment.objects.filter(risk_level=RiskLevelType.HIGH).count(),
+        }
+
+        aggregates = FraudAssessment.objects.aggregate(
+            avg_fraud_probability=Avg('fraud_probability'),
+        )
+
+        trust_aggregates = TransactionTrust.objects.aggregate(
+            avg_confidence_score=Avg('confidence_score'),
+            total=Count('id'),
+        )
+
+        confidence_aggregates = ConfidenceScore.objects.aggregate(
+            avg_confidence_level=Avg('confidence_level'),
+            total=Count('id'),
+        )
+
+        return Response(
+            {
+                'summary': {
+                    'total_assessments': total_assessments,
+                    'flagged_assessments': flagged_assessments,
+                    'avg_fraud_probability': float(aggregates['avg_fraud_probability'] or 0.0),
+                    'avg_confidence_score': float(trust_aggregates['avg_confidence_score'] or 0.0),
+                    'avg_confidence_level': float(confidence_aggregates['avg_confidence_level'] or 0.0),
+                },
+                'risk_breakdown': risk_breakdown,
+                'totals': {
+                    'trust_metrics': trust_aggregates['total'] or 0,
+                    'confidence_scores': confidence_aggregates['total'] or 0,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class TransactionViewSet(viewsets.ModelViewSet):

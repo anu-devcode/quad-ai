@@ -83,3 +83,172 @@ export const decisionFeed = [
     timestamp: '11:43 AM',
   },
 ]
+
+export const readinessChecks = [
+  {
+    name: 'django_backend_structure',
+    status: 'ready',
+    required: true,
+    detail: 'Models, views, urls, and settings are present.'
+  },
+  {
+    name: 'fastapi_predict_service',
+    status: 'ready',
+    required: true,
+    detail: 'POST /predict is available in src/api.py.'
+  },
+  {
+    name: 'ocr_pipeline',
+    status: 'ready',
+    required: true,
+    detail: 'Image preprocessing and Tesseract OCR are wired.'
+  },
+  {
+    name: 'parser_and_validation_layer',
+    status: 'ready',
+    required: true,
+    detail: 'Parsing score, validation logs, and source confidence are available.'
+  },
+]
+
+export const dashboardStats = [
+  { label: 'Total Transactions', value: '42,814', delta: '+6.2%' },
+  { label: 'Flagged Count', value: '163', delta: '-12.0%' },
+  { label: 'Approval Rate', value: '94.3%', delta: '+1.7%' },
+  { label: 'Active Analysts', value: '29', delta: '+3' },
+]
+
+export const riskDistribution = [
+  { label: 'Low', value: 72, tone: 'good' },
+  { label: 'Medium', value: 18, tone: 'warn' },
+  { label: 'High', value: 10, tone: 'bad' },
+]
+
+export const intakeSources = [
+  {
+    key: 'manual',
+    label: 'Manual',
+    hint: 'amount + purchase_time + device_id + ip_address',
+    fields: ['amount', 'purchase_time', 'device_id', 'ip_address']
+  },
+  {
+    key: 'sms',
+    label: 'SMS',
+    hint: 'raw_text + user context',
+    fields: ['raw_text', 'device_id', 'ip_address']
+  },
+  {
+    key: 'screenshot',
+    label: 'Screenshot',
+    hint: 'file upload + OCR confidence',
+    fields: ['file', 'device_id', 'ip_address']
+  },
+  {
+    key: 'pdf',
+    label: 'PDF',
+    hint: 'statement upload + OCR extraction',
+    fields: ['file', 'device_id', 'ip_address']
+  },
+]
+
+export const transactionExplorerRows = [
+  {
+    id: 'TX-20491',
+    user: 'Arielle M.',
+    source: 'sms',
+    amount: '420.00',
+    status: 'completed',
+    risk: 'Low',
+    confidence: '0.96',
+    time: '11:42 AM'
+  },
+  {
+    id: 'TX-20492',
+    user: 'Jordan P.',
+    source: 'screenshot',
+    amount: '980.00',
+    status: 'flagged',
+    risk: 'High',
+    confidence: '0.41',
+    time: '11:36 AM'
+  },
+  {
+    id: 'TX-20493',
+    user: 'Nia T.',
+    source: 'manual',
+    amount: '75.00',
+    status: 'pending',
+    risk: 'Medium',
+    confidence: '0.73',
+    time: '11:18 AM'
+  },
+  {
+    id: 'TX-20494',
+    user: 'Leo A.',
+    source: 'pdf',
+    amount: '2,300.00',
+    status: 'completed',
+    risk: 'Medium',
+    confidence: '0.84',
+    time: '10:54 AM'
+  },
+]
+
+export const transactionCase = {
+  id: 'TX-20492',
+  user: 'Jordan P.',
+  amount: '980.00',
+  deviceId: 'edge-device-77',
+  ipAddress: '192.168.1.42',
+  source: 'screenshot',
+  status: 'flagged',
+  riskLevel: 'High',
+  fraudProbability: '0.81',
+  legitimateProbability: '0.19',
+  parsingSuccess: '0.43',
+  sourceConfidence: '0.65',
+  validationScore: '0.61',
+  reasoning: [
+    'Purchase occurred within 18 minutes of signup.',
+    'Amount is 4x the user average purchase value.',
+    'OCR confidence is below the screenshot threshold.'
+  ],
+  validationLogs: [
+    { check: 'timestamp', result: 'passed', note: 'purchase_time is valid and later than signup_time' },
+    { check: 'amount', result: 'passed', note: 'parsed amount matches extracted total' },
+    { check: 'parsing', result: 'warn', note: 'source confidence is medium and parsing success is incomplete' }
+  ]
+}
+
+export const loanQueue = [
+  {
+    id: 'LN-1004',
+    user: 'Arielle M.',
+    amount: '5,000',
+    tenure: '12 mo',
+    income: '1,800',
+    status: 'evaluated',
+    risk: 'Low',
+    score: '0.21'
+  },
+  {
+    id: 'LN-1005',
+    user: 'Jordan P.',
+    amount: '2,500',
+    tenure: '6 mo',
+    income: '900',
+    status: 'submitted',
+    risk: 'Medium',
+    score: '0.58'
+  },
+  {
+    id: 'LN-1006',
+    user: 'Nia T.',
+    amount: '7,500',
+    tenure: '18 mo',
+    income: '2,100',
+    status: 'approved',
+    risk: 'Low',
+    score: '0.17'
+  },
+]
