@@ -78,6 +78,69 @@
 }
 
 @layer components {
+  .landing-animated-shell {
+    isolation: isolate;
+  }
+
+  .landing-animated-bg {
+    z-index: 0;
+    background:
+      radial-gradient(circle at 15% 12%, rgba(47, 107, 255, 0.16) 0%, rgba(47, 107, 255, 0) 38%),
+      radial-gradient(circle at 85% 20%, rgba(18, 194, 162, 0.10) 0%, rgba(18, 194, 162, 0) 34%),
+      radial-gradient(circle at 55% 75%, rgba(79, 140, 255, 0.10) 0%, rgba(79, 140, 255, 0) 44%);
+  }
+
+  .landing-animated-grid {
+    background-image:
+      linear-gradient(rgba(120, 169, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120, 169, 255, 0.08) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.1) 70%, transparent 100%);
+    opacity: 0.28;
+    animation: driftGrid 34s linear infinite;
+  }
+
+  .landing-orb {
+    position: absolute;
+    filter: blur(70px);
+    border-radius: 9999px;
+    opacity: 0.28;
+    will-change: transform;
+  }
+
+  .landing-orb-a {
+    width: 32rem;
+    height: 32rem;
+    top: -10rem;
+    left: -6rem;
+    background: radial-gradient(circle at 35% 30%, rgba(111, 157, 255, 0.8), rgba(47, 107, 255, 0.08));
+    animation: floatOrbA 22s ease-in-out infinite;
+  }
+
+  .landing-orb-b {
+    width: 30rem;
+    height: 30rem;
+    right: -8rem;
+    top: 10rem;
+    background: radial-gradient(circle at 45% 40%, rgba(35, 201, 175, 0.62), rgba(18, 194, 162, 0.06));
+    animation: floatOrbB 26s ease-in-out infinite;
+  }
+
+  .landing-orb-c {
+    width: 26rem;
+    height: 26rem;
+    left: 40%;
+    bottom: -9rem;
+    background: radial-gradient(circle at 50% 40%, rgba(63, 128, 255, 0.48), rgba(63, 128, 255, 0.05));
+    animation: floatOrbC 28s ease-in-out infinite;
+  }
+
+  .landing-vignette {
+    background:
+      linear-gradient(180deg, rgba(6, 10, 18, 0.35) 0%, rgba(6, 10, 18, 0.18) 28%, rgba(6, 10, 18, 0.36) 100%),
+      radial-gradient(circle at 50% 50%, rgba(6, 10, 18, 0) 45%, rgba(6, 10, 18, 0.34) 100%);
+  }
+
   .analytic-grain {
     position: fixed;
     top: 0;
@@ -184,6 +247,26 @@
   0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
   70% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); }
   100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+@keyframes driftGrid {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(72px, 72px, 0); }
+}
+
+@keyframes floatOrbA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(48px, 26px, 0) scale(1.08); }
+}
+
+@keyframes floatOrbB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-55px, 35px, 0) scale(1.06); }
+}
+
+@keyframes floatOrbC {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(30px, -42px, 0) scale(1.07); }
 }
 
 .animate-pulse-glow {

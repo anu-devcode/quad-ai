@@ -13,7 +13,15 @@ function LandingPage() {
   ]
 
   return (
-    <div className="relative overflow-hidden bg-background text-on-surface">
+    <div className="landing-animated-shell relative overflow-hidden bg-background text-on-surface">
+      <div className="landing-animated-bg pointer-events-none absolute inset-0">
+        <div className="landing-animated-grid absolute inset-0" />
+        <div className="landing-orb landing-orb-a" />
+        <div className="landing-orb landing-orb-b" />
+        <div className="landing-orb landing-orb-c" />
+        <div className="landing-vignette absolute inset-0" />
+      </div>
+
       {/* ─── Hero Section ─── */}
       <section className="relative overflow-hidden px-4 pb-32 pt-20 sm:px-8 sm:pt-32 lg:px-12">
         {/* Subtle Background Glow */}
