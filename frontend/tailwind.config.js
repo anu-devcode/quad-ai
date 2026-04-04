@@ -4,17 +4,35 @@ export default {
   theme: {
     extend: {
       colors: {
-        'app-base': '#f1f3f6',
-        ink: '#111827',
+        background: 'var(--background)',
+        'on-background': 'var(--on-background)',
+        surface: 'var(--surface-container)',
+        'surface-low': 'var(--surface-container-low)',
+        'surface-high': 'var(--surface-container-high)',
+        'surface-highest': 'var(--surface-container-highest)',
+        'surface-lowest': 'var(--surface-container-lowest)',
+        'on-surface': 'var(--on-surface)',
+        'on-surface-variant': 'var(--on-surface-variant)',
+        'inverse-surface': 'var(--inverse-surface)',
+        'on-inverse-surface': 'var(--on-inverse-surface)',
+        'outline-variant': 'var(--outline-variant)',
+        primary: 'var(--primary)',
+        'primary-dim': 'var(--primary-dim)',
+        tertiary: 'var(--tertiary)',
+        'tertiary-container': 'var(--tertiary-container)',
+        'secondary-container': 'var(--secondary-container)',
+        'on-secondary-container': 'var(--on-secondary-container)',
+        error: 'var(--error)',
+        'error-container': 'var(--error-container)',
       },
       fontFamily: {
-        sans: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        body: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Sora', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        soft: '0 12px 40px rgba(15, 23, 42, 0.08)',
-        float: '0 22px 44px rgba(63, 83, 214, 0.16)',
+        premium: '0 8px 32px rgba(19, 27, 46, 0.04)',
+        'premium-hover': '0 12px 48px rgba(19, 27, 46, 0.08)',
       },
       keyframes: {
         rise: {

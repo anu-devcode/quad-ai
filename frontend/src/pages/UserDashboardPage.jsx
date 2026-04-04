@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BottomNav from '../components/dashboard/BottomNav'
-import { ScoreRing, SectionHeading, SurfaceCard, TokenPill } from '../components/ui'
+import { PremiumButton, ProgressTrack, ScoreRing, SectionHeading, SurfaceCard, TokenPill } from '../components/ui'
 import { userProfile, userTransactions } from '../data/mockData'
 
 function txPill(status) {
@@ -24,70 +24,89 @@ const tabLabels = {
 
 function DashboardHeader({ activeTab }) {
   return (
-    <header className="mb-5 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-white shadow-soft">
-          <span className="text-sm font-semibold text-indigo-700">AM</span>
+    <header className="mb-8 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-surface-highest text-on-surface shadow-premium">
+          <span className="text-sm font-bold">AM</span>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Welcome back</p>
-          <h1 className="font-display text-2xl font-semibold text-indigo-800">{tabLabels[activeTab]}</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant">
+            Institutional Ledger
+          </p>
+          <h1 className="mt-0.5 font-display text-2xl font-semibold text-on-surface">
+            {tabLabels[activeTab]}
+          </h1>
         </div>
       </div>
-      <button className="rounded-full bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.15em] text-slate-700 shadow-soft">
-        Alerts
-      </button>
+      <div className="flex items-center gap-2">
+        <PremiumButton variant="secondary" className="px-4 py-2 text-[11px] font-bold uppercase tracking-[0.05em]">
+          Alerts
+        </PremiumButton>
+      </div>
     </header>
   )
 }
 
 function HomeView() {
   return (
-    <section className="space-y-4">
-      <SurfaceCard className="p-6">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Available Balance</p>
-        <div className="mt-2 flex items-end justify-between gap-3">
-          <h2 className="font-display text-5xl font-semibold tracking-tight text-slate-900">
-            ${userProfile.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </h2>
-          <p className="text-sm font-semibold text-indigo-700">+{userProfile.monthlyGain}% this month</p>
-        </div>
-        <div className="mt-5 grid grid-cols-2 gap-2 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          <Link to="/dashboard/send" className="rounded-2xl bg-indigo-700 px-3 py-4 text-center text-sm font-semibold text-white">
-            Send Money
-          </Link>
-          <Link to="/dashboard/loan" className="rounded-2xl px-3 py-4 text-center text-sm font-semibold text-slate-800">
-            Request Loan
-          </Link>
-        </div>
-      </SurfaceCard>
+    <section className="space-y-6">
+      {/* Primary Balance Section - Intentional Asymmetry */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <SurfaceCard level="lowest" className="lg:col-span-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant">
+            Aggregate Liquidity
+          </p>
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="font-display text-5xl font-bold tracking-tight text-on-surface sm:text-6xl">
+              ${userProfile.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h2>
+            <div className="mb-2">
+              <TokenPill tone="good">+{userProfile.monthlyGain}% Periodic Growth</TokenPill>
+            </div>
+          </div>
+          <div className="mt-8 flex gap-3">
+            <PremiumButton variant="primary" className="flex-1">Send Assets</PremiumButton>
+            <PremiumButton variant="secondary" className="flex-1">Request Credit</PremiumButton>
+          </div>
+        </SurfaceCard>
 
-      <SurfaceCard className="border-l-2 border-l-red-700 p-6">
-        <SectionHeading overline="AI Insights" title="Your activity is consistent" />
-        <p className="text-sm text-slate-600">
-          You are eligible for a <span className="font-semibold text-red-700">15% credit limit increase</span> based on your last three months of fiduciary compliance.
-        </p>
-        <button className="mt-4 text-sm font-semibold text-indigo-700">View Full Analysis →</button>
-      </SurfaceCard>
+        <SurfaceCard level="highest" className="flex flex-col justify-center border-l-2 border-primary/20">
+          <SectionHeading overline="Trust Engine" title="Sovereign Compliance" />
+          <p className="text-sm leading-relaxed text-on-surface-variant">
+            Activity is <span className="font-bold text-on-surface">optimal</span>. 
+            Eligible for <span className="font-bold text-primary">15% expansion</span> based on fiduciary history.
+          </p>
+          <button className="mt-4 self-start text-[11px] font-bold uppercase tracking-[0.05em] text-primary hover:underline">
+            View Analysis →
+          </button>
+        </SurfaceCard>
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <SurfaceCard className="p-5">
+      <div className="grid gap-6 md:grid-cols-5">
+        <SurfaceCard level="default" className="md:col-span-3">
           <SectionHeading
-            overline="Recent Transactions"
-            title="Latest Activity"
-            action={<Link to="/dashboard/history" className="text-sm font-semibold text-indigo-700">View All</Link>}
+            overline="Journal Entry"
+            title="Recent Activity"
+            action={<Link to="/dashboard/history" className="text-[11px] font-bold uppercase tracking-[0.05em] text-primary">View Ledger</Link>}
           />
-          <div className="space-y-3">
-            {userTransactions.slice(0, 3).map((tx) => (
-              <div key={tx.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-                <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-200 text-sm font-semibold text-slate-600">TX</div>
+          <div className="space-y-1">
+            {userTransactions.slice(0, 4).map((tx) => (
+              <div 
+                key={tx.id} 
+                className="group flex items-center gap-4 rounded-lg p-3 transition-colors hover:bg-background/50"
+              >
+                <div className="grid h-10 w-10 place-items-center rounded bg-surface-highest text-[10px] font-bold text-on-surface-variant group-hover:bg-surface-lowest transition-colors">
+                  TX
+                </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-slate-900">{tx.merchant}</p>
-                  <p className="text-xs text-slate-500">{tx.category} • {tx.age}</p>
+                  <p className="truncate text-sm font-semibold text-on-surface">{tx.merchant}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-on-surface-variant">{tx.category} • {tx.age}</p>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold ${tx.amount > 0 ? 'text-indigo-700' : 'text-slate-900'}`}>{amountText(tx.amount)}</p>
-                  <div className="mt-1">
+                  <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-primary' : 'text-on-surface'}`}>
+                    {amountText(tx.amount)}
+                  </p>
+                  <div className="mt-0.5">
                     <TokenPill tone={txPill(tx.status)}>{tx.status}</TokenPill>
                   </div>
                 </div>
@@ -96,34 +115,39 @@ function HomeView() {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard className="p-6">
-          <p className="text-center text-xs uppercase tracking-[0.2em] text-slate-400">Fiduciary Credit Score</p>
-          <div className="mt-4">
+        <SurfaceCard level="lowest" className="md:col-span-2">
+          <p className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">
+            Fiduciary Credit Rating
+          </p>
+          <div className="mt-6">
             <ScoreRing score={userProfile.creditScore} />
           </div>
-          <div className="mt-4 text-center">
-            <TokenPill tone="info">High Trust / Low Risk</TokenPill>
-            <p className="mx-auto mt-3 max-w-xs text-sm text-slate-600">
-              Your score improved by 12 points since your last verification cycle.
+          <div className="mt-6 text-center">
+            <TokenPill tone="info">High Confidence Integrity</TokenPill>
+            <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-on-surface-variant">
+              Score improved by <span className="font-bold text-on-surface">12 points</span> in the current verification cycle.
             </p>
           </div>
         </SurfaceCard>
       </div>
 
-      <SurfaceCard className="bg-gradient-to-br from-indigo-700 to-indigo-800 p-6 text-white">
-        <h3 className="font-display text-3xl font-semibold">Financial Health Report</h3>
-        <p className="mt-3 text-sm text-indigo-100">
-          Your debt-to-income ratio is in the top 5% of our users. Maintain current spending habits to unlock Premium Tier features.
-        </p>
-        <div className="mt-4 rounded-2xl bg-white/10 p-4">
-          <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.15em] text-indigo-100">
-            <span>Goal: Emergency Fund</span>
-            <span>85%</span>
-          </div>
-          <div className="h-2 rounded-full bg-white/25">
-            <div className="h-2 w-[85%] rounded-full bg-white" />
+      <SurfaceCard level="high" className="premium-gradient relative overflow-hidden text-white">
+        <div className="relative z-10">
+          <h3 className="font-display text-2xl font-bold sm:text-3xl">Integrity Insight Report</h3>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed opacity-90">
+            Current debt-to-income ratio is in calculations. Top 5 percentile of institutional participants. 
+            Maintain current velocity to unlock Sovereign Tier.
+          </p>
+          <div className="mt-8 max-w-md rounded-xl bg-white/10 p-5 backdrop-blur-sm">
+            <div className="mb-3 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.1em]">
+              <span>Emergency Liquidity Pool</span>
+              <span>85% Funded</span>
+            </div>
+            <ProgressTrack value={85} />
           </div>
         </div>
+        {/* Subtle background element */}
+        <div className="absolute -bottom-12 -right-12 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
       </SurfaceCard>
     </section>
   )
@@ -131,18 +155,25 @@ function HomeView() {
 
 function HistoryView() {
   return (
-    <SurfaceCard className="p-5">
-      <SectionHeading overline="Recent Transactions" title="Complete Activity Ledger" />
-      <div className="space-y-3">
+    <SurfaceCard level="default">
+      <SectionHeading overline="Complete Ledger" title="Transaction Integrity Log" />
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
         {userTransactions.map((tx) => (
-          <div key={tx.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-200 text-sm font-semibold text-slate-600">TX</div>
+          <div 
+            key={tx.id} 
+            className="flex items-center gap-4 rounded-lg bg-surface-low/50 p-4 transition-all hover:bg-surface-low"
+          >
+            <div className="grid h-10 w-10 place-items-center rounded bg-surface-lowest text-[10px] font-bold text-on-surface-variant">
+              TX
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold text-slate-900">{tx.merchant}</p>
-              <p className="text-xs text-slate-500">{tx.category} • {tx.age}</p>
+              <p className="truncate text-sm font-semibold text-on-surface">{tx.merchant}</p>
+              <p className="text-[10px] uppercase tracking-wider text-on-surface-variant">{tx.category} • {tx.age}</p>
             </div>
             <div className="text-right">
-              <p className={`font-semibold ${tx.amount > 0 ? 'text-indigo-700' : 'text-slate-900'}`}>{amountText(tx.amount)}</p>
+              <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-primary' : 'text-on-surface'}`}>
+                {amountText(tx.amount)}
+              </p>
               <div className="mt-1">
                 <TokenPill tone={txPill(tx.status)}>{tx.status}</TokenPill>
               </div>
@@ -160,39 +191,49 @@ function SendView() {
   const canSend = Number(amount) > 0
 
   return (
-    <SurfaceCard className="p-6">
-      <SectionHeading overline="Transfer" title="Send Money Securely" />
-      <form className="grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-semibold text-slate-700">
-          Recipient
-          <input
-            value={receiver}
-            onChange={(event) => setReceiver(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-500"
-          />
-        </label>
-        <label className="text-sm font-semibold text-slate-700">
-          Amount
-          <input
-            type="number"
-            min="1"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0.00"
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-500"
-          />
-        </label>
-      </form>
-      <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-        AI will run recipient trust, amount behavior, and anomaly checks before approving this transfer.
-      </div>
-      <button
-        disabled={!canSend}
-        className="mt-4 rounded-xl bg-indigo-700 px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Continue Transfer
-      </button>
-    </SurfaceCard>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <SurfaceCard level="lowest" className="lg:col-span-2">
+        <SectionHeading overline="Asset Transfer" title="Secure Dispatch" />
+        <form className="mt-6 grid gap-6 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Recipient Unit</span>
+            <input
+              value={receiver}
+              onChange={(event) => setReceiver(event.target.value)}
+              className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Asset Quantity</span>
+            <input
+              type="number"
+              min="1"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="0.00"
+              className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
+            />
+          </label>
+        </form>
+        <div className="mt-8">
+          <PremiumButton
+            disabled={!canSend}
+            className="w-full sm:w-auto"
+          >
+            Authorize Transfer
+          </PremiumButton>
+        </div>
+      </SurfaceCard>
+
+      <SurfaceCard level="highest" className="flex items-center border-l-2 border-primary/20">
+        <div>
+          <SectionHeading overline="Verification" title="Institutional Audit" />
+          <p className="text-sm leading-relaxed text-on-surface-variant">
+            Every transaction undergoes rigorous <span className="font-bold text-on-surface">behavioral trust analysis</span> and anomaly detection before protocol approval.
+          </p>
+        </div>
+      </SurfaceCard>
+    </div>
   )
 }
 
@@ -201,30 +242,43 @@ function LoanView() {
   const eligible = useMemo(() => Math.round((userProfile.creditScore / 850) * 8000), [])
 
   return (
-    <SurfaceCard className="p-6">
-      <SectionHeading overline="Credit Access" title="Request Loan" />
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl bg-slate-50 p-4">
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Score</p>
-          <p className="mt-1 font-display text-3xl font-semibold text-slate-900">{userProfile.creditScore}</p>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <SurfaceCard level="lowest" className="lg:col-span-2">
+        <SectionHeading overline="Liquidity Request" title="Institutional Credit Expansion" />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-lg bg-surface-low p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Rating Score</p>
+            <p className="mt-2 font-display text-4xl font-bold text-on-surface">{userProfile.creditScore}</p>
+          </div>
+          <div className="rounded-lg bg-surface-highest p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Available Ceiling</p>
+            <p className="mt-2 font-display text-4xl font-bold text-primary">${eligible.toLocaleString()}</p>
+          </div>
         </div>
-        <div className="rounded-2xl bg-slate-50 p-4 sm:col-span-2">
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Instant Eligible Amount</p>
-          <p className="mt-1 font-display text-3xl font-semibold text-indigo-700">${eligible.toLocaleString()}</p>
+        <label className="mt-8 block">
+          <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Requested Allocation</span>
+          <input
+            type="number"
+            min="100"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+            className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
+          />
+        </label>
+        <div className="mt-8">
+          <PremiumButton className="w-full sm:w-auto">Request Eligibility Audit</PremiumButton>
         </div>
-      </div>
-      <label className="mt-4 block text-sm font-semibold text-slate-700">
-        Requested Amount
-        <input
-          type="number"
-          min="100"
-          value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-500"
-        />
-      </label>
-      <button className="mt-4 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white">Check Eligibility</button>
-    </SurfaceCard>
+      </SurfaceCard>
+
+      <SurfaceCard level="highest" className="flex items-center border-l-2 border-secondary-container">
+        <div>
+          <SectionHeading overline="Compliance" title="Regulatory Buffer" />
+          <p className="text-sm leading-relaxed text-on-surface-variant">
+            Allocation is determined by cryptographic proof of history and <span className="font-bold text-on-surface">Sovereign Compliance</span> metrics.
+          </p>
+        </div>
+      </SurfaceCard>
+    </div>
   )
 }
 
@@ -233,13 +287,15 @@ function UserDashboardPage() {
   const activeTab = tab && tabLabels[tab] ? tab : 'home'
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:pt-10">
+    <div className="relative mx-auto max-w-7xl px-4 pb-32 pt-6 sm:px-8 sm:pt-8 lg:pb-12 lg:pt-12">
       <DashboardHeader activeTab={activeTab} />
 
-      {activeTab === 'home' && <HomeView />}
-      {activeTab === 'history' && <HistoryView />}
-      {activeTab === 'send' && <SendView />}
-      {activeTab === 'loan' && <LoanView />}
+      <main className="animate-enter">
+        {activeTab === 'home' && <HomeView />}
+        {activeTab === 'history' && <HistoryView />}
+        {activeTab === 'send' && <SendView />}
+        {activeTab === 'loan' && <LoanView />}
+      </main>
 
       <BottomNav />
     </div>

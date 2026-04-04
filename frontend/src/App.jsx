@@ -6,9 +6,8 @@ import UserDashboardPage from './pages/UserDashboardPage'
 
 function App() {
   return (
-    <div className="min-h-screen bg-app-base text-ink">
-      <div className="bg-orb bg-orb-left" />
-      <div className="bg-orb bg-orb-right" />
+    <div className="min-h-screen bg-background text-on-surface">
+      <div className="analytic-grain" />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />

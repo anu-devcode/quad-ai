@@ -12,8 +12,8 @@ function BottomNav() {
   const location = useLocation()
 
   return (
-    <nav className="fixed bottom-3 left-1/2 z-20 w-[min(560px,calc(100%-1.5rem))] -translate-x-1/2 rounded-2xl border border-white/60 bg-white/95 p-2 shadow-soft backdrop-blur">
-      <ul className="grid grid-cols-5 gap-1">
+    <nav className="fixed bottom-4 left-1/2 z-20 w-[min(640px,calc(100%-2rem))] -translate-x-1/2 rounded-xl bg-inverse-surface p-1.5 shadow-premium sm:w-[min(640px,calc(100%-3rem))] sm:p-2 lg:static lg:mt-10 lg:w-full lg:translate-x-0 lg:rounded-2xl">
+      <ul className="flex items-center justify-around gap-1">
         {navItems.map((item) => {
           const isActive =
             location.pathname === item.href ||
@@ -21,13 +21,18 @@ function BottomNav() {
             (item.key === 'admin' && location.pathname === '/admin')
 
           return (
-            <li key={item.key}>
+            <li key={item.key} className="flex-1">
               <Link
                 to={item.href}
-                className={`block rounded-xl px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
-                  isActive ? 'bg-indigo-700 text-white' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+                className={`relative block rounded-lg py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.05em] transition-all duration-200 sm:text-[11px] ${
+                  isActive 
+                    ? 'text-white' 
+                    : 'text-on-inverse-surface/40 hover:text-white'
                 }`}
               >
+                {isActive && (
+                  <div className="premium-gradient absolute inset-0 -z-10 rounded-lg opacity-20" />
+                )}
                 {item.label}
               </Link>
             </li>

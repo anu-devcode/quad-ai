@@ -1,35 +1,38 @@
 import { Link, NavLink } from 'react-router-dom'
 
-function navClass({ isActive }) {
+const navClass = ({ isActive }) => {
+  const base = 'whitespace-nowrap rounded-md px-4 py-2 text-[11px] font-bold uppercase tracking-[0.05em] transition-all duration-200'
   if (isActive) {
-    return 'rounded-full bg-indigo-700 px-4 py-2 text-white'
+    return `${base} bg-primary text-white shadow-premium`
   }
-  return 'rounded-full px-4 py-2 text-slate-700 transition hover:bg-white/70'
+  return `${base} text-on-surface-variant hover:bg-surface-highest hover:text-on-surface`
 }
 
 function SiteHeader() {
   return (
-    <header className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-full border border-white/60 bg-white/80 px-3 py-2 shadow-soft backdrop-blur">
-      <Link to="/" className="flex items-center gap-2 rounded-full px-3 py-2">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-indigo-700 text-xs font-bold text-white">FI</span>
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.26em] text-slate-400">Fiduciary</p>
-          <p className="font-display text-sm font-semibold text-slate-900">Intelligence</p>
+    <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 rounded-xl bg-surface-lowest/70 p-2 shadow-premium backdrop-blur-xl sm:px-4 sm:py-3">
+      <Link to="/" className="flex items-center gap-3 px-2">
+        <div className="grid h-10 w-10 place-items-center rounded-lg premium-gradient text-xs font-bold text-white shadow-premium">
+          SI
+        </div>
+        <div className="hidden min-w-0 sm:block">
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Sovereign</p>
+          <p className="font-display text-sm font-bold text-on-surface">Intelligence</p>
         </div>
       </Link>
 
-      <nav className="flex items-center gap-1 text-sm font-semibold">
+      <nav className="no-scrollbar flex items-center gap-1 overflow-x-auto">
         <NavLink to="/" className={navClass} end>
-          Landing
+          Institutional
         </NavLink>
         <NavLink to="/auth" className={navClass}>
-          Auth
+          Protocol
         </NavLink>
         <NavLink to="/dashboard/home" className={navClass}>
-          User
+          Ledger
         </NavLink>
         <NavLink to="/admin" className={navClass}>
-          Admin
+          Console
         </NavLink>
       </nav>
     </header>
