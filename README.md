@@ -1,4 +1,4 @@
-# Fraud Detection Model
+# Quirass AI Fraud and Risk Platform
 
 <p align="center">
    <a href="./pitch-ppt%28quirass%29.pdf">
@@ -16,122 +16,124 @@
 
 Pitch file used by this README: `pitch-ppt(quirass).pdf` in the repository root.
 
-## Project Overview
-This project aims to detect fraudulent transactions using machine learning techniques. The analysis combines multiple datasets including transaction data, IP address mappings, and credit card fraud records to build a comprehensive fraud detection system.
+Quirass is a production-style fraud detection and risk operations platform that combines a Django API, a FastAPI model service, and a React dashboard. The system supports transaction scoring, OTP-based authentication, loan request workflows, OCR-assisted ingestion, and admin oversight.
 
-## Business Objective
-Adey Innovations Inc. aims to protect its e-commerce and banking ecosystem by detecting fraudulent transactions in real-time. This project focuses on:
-- **Financial Security**: Identifying and blocking fraudulent activities to prevent monetary loss.
-- **User Trust**: Balancing rigorous security with a frictionless consumer experience by minimizing false positives.
-- **Pattern Recognition**: Analyzing geographic, temporal, and user behavioral data to stay ahead of sophisticated fraud patterns.
+This README is written for evaluators and deployers: it explains what the system does, how it is structured, how to run it locally, and how to deploy it on Coolify behind a DigitalOcean VPS.
 
-📊 **View the [Interim Report](file:///C:/Users/Mohammed/.gemini/antigravity/brain/1249fc4d-f56d-446a-b4f5-bd5d3c162eb8/interim_report.md)** for a detailed analysis of our progress.
+## What The Platform Does
 
-## Datasets
-The project uses three main datasets:
+The application is built to help an organization detect suspicious transactions and manage risk decisions across a user portal and an admin console.
 
-1. **Fraud_Data.csv**: E-commerce transaction data
-   - 151,112 transactions
-   - Features: user_id, signup_time, purchase_time, purchase_value, device_id, source, browser, sex, age, ip_address, class
+- Scores incoming transactions for fraud risk.
+- Uses a separate FastAPI service to host the ML model.
+- Stores operational data in a PostgreSQL database in production.
+- Supports OCR-assisted document ingestion for screenshots, PDFs, and other transaction artifacts.
+- Provides a React web front end for users and admins.
+- Exposes health checks for each deployable component.
 
-2. **IpAddress_to_Country.csv**: IP geolocation mapping
-   - 138,846 IP ranges mapped to countries
-   - Features: lower_bound_ip_address, upper_bound_ip_address, country
+## System Architecture
 
-3. **creditcard.csv**: Credit card transaction data
-   - 284,807 transactions
-   - Features: Time, V1-V28 (PCA-transformed), Amount, Class
+```mermaid
+flowchart LR
+  U[User Browser] --> F[React Frontend]
+  F -->|/api/*| D[Django API]
+  D --> P[(PostgreSQL)]
+  D --> M[FastAPI Model Service]
+  D --> O[OCR / Document Parsing]
+  M --> A[(ML Artifacts)]
+```
 
-## Installation
+### Services
+
+- Frontend: React + Vite + Nginx
+- API: Django + Django REST Framework
+- Model service: FastAPI + scikit-learn artifacts
+- Database: PostgreSQL for production, SQLite fallback for local development
+
+### Why the split matters
+
+The Django app owns business logic, authentication flows, and database writes. The FastAPI service owns ML inference only. This makes deployment easier to scale and isolates model runtime dependencies from the main API.
+
+## Repository Layout
+
+- [campus/](campus/) - Django project and payments app
+- [src/](src/) - FastAPI model service
+- [frontend/](frontend/) - React user interface
+- [models/](models/) - Serialized ML artifacts
+- [docker-compose.coolify.yml](docker-compose.coolify.yml) - production compose file for Coolify
+- [Dockerfile.django](Dockerfile.django) - Django container
+- [Dockerfile.fastapi](Dockerfile.fastapi) - model service container
+- [Dockerfile.frontend](Dockerfile.frontend) - frontend container
+- [DOCKER.md](DOCKER.md) - deployment notes and environment variables
+
+## Main Features
+
+- Fraud scoring with a dedicated model service.
+- OTP request and verification flows for users and admins.
+- Transaction ingestion and validation tracking.
+- Loan request evaluation and decision support.
+- Risk alerts and notification flows.
+- Admin analytics and governance views.
+- OCR parsing for screenshot and PDF transaction inputs.
+
+## Technology Stack
+
+- Backend: Python, Django, Django REST Framework
+- Model API: FastAPI, Uvicorn, scikit-learn, joblib
+- Frontend: React 19, Vite, React Router, Tailwind CSS
+- Database: PostgreSQL in production, SQLite locally
+- Reverse proxy: Nginx for the frontend container
+- Deployment: Docker Compose, Coolify, DigitalOcean VPS
+
+## Data And Model Assets
+
+The model service loads serialized artifacts from [models/](models/):
+
+- `random_forest.joblib`
+- `scaler.joblib`
+
+The Django layer calls the FastAPI service at `/predict` and normalizes payloads before forwarding them.
+
+## Local Development
 
 ### Prerequisites
-- Python 3.8 or higher
-- Virtual environment (recommended)
 
-### Setup
+- Python 3.13 or compatible environment
+- Node.js 22 or compatible environment
+- Docker and Docker Compose if you want containerized local runs
+
+### Backend
+
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd fraud-detection-model
-
-# Create and activate virtual environment
-python -m venv venv
-.\venv\Scripts\Activate.ps1  # Windows
-source venv/bin/activate  # Linux/Mac
-
-# Install dependencies
 pip install -r requirements.txt
+python campus/manage.py migrate
+python campus/manage.py runserver
 ```
 
-## Project Structure
-```
-fraud-detection-model/
-├── data/
-│   ├── raw/              # Raw data files (git-ignored)
-│   └── processed/        # Cleaned and processed data
-├── notebooks/
-│   ├── 01_data_cleaning.ipynb
-│   ├── 02_exploratory_data_analysis.ipynb
-│   ├── 03_feature_engineering.ipynb
-│   ├── 04_class_imbalance_handling.ipynb
-│   └── 05_model_training_and_evaluation.ipynb
-├── src/
-│   ├── data_loader.py
-│   ├── data_cleaner.py
-│   ├── feature_engineer.py
-│   ├── preprocessor.py
-│   └── modeling.py
-├── tests/                # Unit tests
-├── models/               # Trained models
-├── docs/                 # Documentation
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
+### Frontend
 
-## Usage
-
-### Running Notebooks
-Execute notebooks in order:
 ```bash
-jupyter notebook
-# Open and run: 01_data_cleaning.ipynb → 02_exploratory_data_analysis.ipynb → ...
+cd frontend
+npm install
+npm run dev
 ```
 
-### Using Python Scripts
-```python
-from src.data_loader import DataLoader
-from src.data_cleaner import DataCleaner
+### FastAPI model service
 
-# Load data
-loader = DataLoader()
-df = loader.load_fraud_data('data/raw/Fraud_Data.csv')
-
-# Clean data
-cleaner = DataCleaner()
-df_clean = cleaner.handle_missing_values(df)
+```bash
+python src/api.py
 ```
 
-## Key Findings (Interim Results)
-- Class imbalance: Approximately 90% non-fraud, 10% fraud transactions
-- Time-based patterns: Higher fraud rates during specific hours
-- Geographic insights: Certain regions show elevated fraud risk
-- Feature importance: Time since signup and transaction amount are strong indicators
-- **Task 2a Results**: Successfully trained a baseline Logistic Regression model with reporting on AUC-PR, F1-Score, and Confusion Matrix.
+## Docker Run
 
-## Task 2: Model Training and Evaluation (Interim-2)
-Our latest progress includes both Task 2a and Task 2b requirements:
-- **Task 2a (Baseline)**: Established baseline performance using Logistic Regression with stratified splitting.
-- **Task 2b (Ensemble)**: Developed a tuned Random Forest model with 5-fold Stratified Cross-Validation.
-- **Evaluation**: Comprehensive comparison of models using AUC-PR, F1-Score, and reporting mean/std across CV folds.
+For local containerized runs, use the production compose file:
 
-## Next Steps
-1. Model explainability using SHAP or LIME
-2. API development for real-time fraud prediction
-3. Containerization for deployment
-4. Continuous integration and monitoring
+```bash
+docker compose -f docker-compose.coolify.yml up --build
+```
 
 ## Deployment
+
 Active frontend demo:
 
 - https://quad-ai-brown.vercel.app/demo
@@ -160,10 +162,152 @@ Why this still wins:
 - Backend has health checks and clear service separation for quick recovery.
 - Transaction scoring keeps operational continuity by blending local logic with external model scoring.
 
+The stack starts these services:
+
+- `db`
+- `fastapi`
+- `django`
+- `frontend`
+
 See `DOCKER.md` for exact environment variables and service wiring.
 
-## Contributors
-- Mohammed Sultan
+## Coolify Deployment
+
+Use Coolify Docker Compose deployment with [docker-compose.coolify.yml](docker-compose.coolify.yml).
+
+### Coolify settings
+
+- Base Directory: `/`
+- Docker Compose Location: `docker-compose.coolify.yml`
+- Build Pack: `Docker Compose`
+
+### Public routing
+
+- Expose only the `frontend` service publicly.
+- Keep `django`, `fastapi`, and `db` internal.
+- The frontend Nginx container proxies `/api/*` to Django.
+
+### Required environment variables
+
+Set these in Coolify using values appropriate for your domain and database password:
+
+- `DJANGO_SECRET_KEY`
+- `DJANGO_DEBUG`
+- `DJANGO_ALLOWED_HOSTS`
+- `DJANGO_CSRF_TRUSTED_ORIGINS`
+- `DJANGO_CORS_ALLOWED_ORIGINS`
+- `DJANGO_SESSION_COOKIE_SECURE`
+- `DJANGO_CSRF_COOKIE_SECURE`
+- `DJANGO_SECURE_SSL_REDIRECT`
+- `DATABASE_URL`
+- `FRAUD_MODEL_API_URL`
+- `FRAUD_MODEL_API_TIMEOUT_SECONDS`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+
+See [.env.example](.env.example) for the current reference values.
+
+### Health checks
+
+- Frontend: `/healthz`
+- Django: `/api/health/`
+- FastAPI: `/health`
+
+## Public Routes
+
+### Frontend
+
+- `/` - marketing landing page
+- `/auth` - user authentication
+- `/admin/auth` - admin authentication
+- `/portal/*` - user portal
+- `/admin/*` - admin dashboard
+
+### Django API
+
+- `/api/health/` - health check
+- `/api/auth/otp/request/`
+- `/api/auth/otp/verify/`
+- `/api/predict/`
+- `/api/transactions/`
+- `/api/loans/requests/`
+- `/api/trust/profiles/`
+- `/api/notifications/`
+- `/api/risk/alerts/`
+- `/api/fraud/feedback/`
+- `/api/admin/users/`
+- `/api/admin/model-monitoring/`
+
+### FastAPI model service
+
+- `/` - service status
+- `/health` - health check
+- `/predict` - ML scoring endpoint
+
+## Verification And Health
+
+After deployment, verify these URLs in your browser:
+
+1. Frontend root: `https://your-domain/`
+2. Frontend health: `https://your-domain/healthz`
+3. Django health: `https://your-domain/api/health/`
+
+Expected results:
+
+- Frontend returns the Quirass UI.
+- Health endpoints return JSON or a simple `ok` response.
+- API requests are proxied through the frontend to Django.
+
+## Troubleshooting
+
+### Build fails in Coolify
+
+- Make sure the compose file path is `docker-compose.coolify.yml`, not `.yaml`.
+- Ensure the branch Coolify deploys includes the latest Docker changes.
+- If the VPS is low on RAM or disk, prune old Docker resources and redeploy.
+
+### Django health is unhealthy
+
+- Confirm `DATABASE_URL` points to the Postgres service.
+- Confirm `DJANGO_ALLOWED_HOSTS` includes your domain and localhost for internal checks.
+- Confirm `DJANGO_SECURE_SSL_REDIRECT` remains `false` inside the container stack.
+
+### API calls fail from the frontend
+
+- Verify the frontend is deployed with `VITE_API_BASE_URL=/api`.
+- Verify the Nginx proxy config routes `/api/` to Django.
+
+### OCR or model dependencies fail
+
+- The Django image includes Tesseract and OpenCV runtime dependencies.
+- The FastAPI image includes the ML runtime packages and model artifacts.
+
+## Development Notes
+
+- Django falls back to SQLite locally when `DATABASE_URL` is not set.
+- Production uses PostgreSQL through `DATABASE_URL`.
+- `collectstatic` runs during the Django container startup sequence.
+- The frontend build is a static bundle served by Nginx.
+
+## Testing And Validation
+
+Recommended checks before submitting the project:
+
+```bash
+python -m pytest
+python campus/manage.py check
+cd frontend && npm run lint
+cd frontend && npm run build
+```
+
+## Security Notes
+
+- Do not keep the default secret key in production.
+- Restrict `DJANGO_ALLOWED_HOSTS` to your actual domains.
+- Use HTTPS at the Coolify edge and keep internal services private.
+- Store database credentials only in Coolify environment variables.
 
 ## License
-This project is part of an academic/professional assessment.
+
+This project is part of an academic or hackathon submission and should be used according to your event requirements.

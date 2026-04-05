@@ -12,6 +12,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   fastapi:
     build:
@@ -25,6 +26,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   django:
     build:
@@ -41,7 +43,7 @@ services:
       FRAUD_MODEL_API_TIMEOUT_SECONDS: 8
       DJANGO_SESSION_COOKIE_SECURE: "true"
       DJANGO_CSRF_COOKIE_SECURE: "true"
-      DJANGO_SECURE_SSL_REDIRECT: "true"
+      DJANGO_SECURE_SSL_REDIRECT: "false"
     depends_on:
       db:
         condition: service_healthy
@@ -51,7 +53,8 @@ services:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/', timeout=5).read()\""]
       interval: 15s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 120s
 
   frontend:
     build:
@@ -67,6 +70,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
 volumes:
   postgres_data:
