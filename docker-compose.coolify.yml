@@ -38,7 +38,7 @@ services:
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
       DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-}
       DJANGO_CORS_ALLOWED_ORIGINS: ${DJANGO_CORS_ALLOWED_ORIGINS:-}
-      DATABASE_URL: ${DATABASE_URL:-postgres://campus:campus-password@db:5432/campus}
+      DJANGO_DATABASE_URL: ${DJANGO_DATABASE_URL:-postgres://campus:campus-password@db:5432/campus}
       FRAUD_MODEL_API_URL: http://fastapi:8001/predict
       FRAUD_MODEL_API_TIMEOUT_SECONDS: 8
       DJANGO_SESSION_COOKIE_SECURE: "true"

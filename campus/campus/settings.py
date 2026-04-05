@@ -94,6 +94,7 @@ WSGI_APPLICATION = "campus.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
+        env=os.getenv("DJANGO_DATABASE_URL") or os.getenv("DATABASE_URL"),
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=int(os.getenv("DJANGO_DB_CONN_MAX_AGE", "600")),
     )
