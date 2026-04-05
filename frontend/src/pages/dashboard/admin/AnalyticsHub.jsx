@@ -1,49 +1,136 @@
+import { useEffect, useMemo, useState } from 'react'
 import { SurfaceCard } from '../../../components/ui'
 import { LiveDot, Sparkline, StatusBadge } from '../../../components/dashboard/AdminVisuals'
-import { useAdminOps } from '../../../context/AdminOpsContext'
-import { useVerification } from '../../../context/VerificationContext'
 import { useAuth } from '../../../context/AuthContext'
-import { useState } from 'react'
+import { adminScope, getDashboardStats, getLoans, getModelMonitoring, getTransactions, toList } from '../../../services/campusApi'
 
 function AnalyticsHub() {
-  const { users, riskSummary, activityLog, exportAnalytics, policy } = useAdminOps()
-  const { queueStats, decisionEvents } = useVerification()
   const { user } = useAuth()
+
+  const [stats, setStats] = useState(null)
+  const [transactions, setTransactions] = useState([])
+  const [loanRequests, setLoanRequests] = useState([])
+  const [modelMonitoring, setModelMonitoring] = useState(null)
+  const [error, setError] = useState('')
   const [exportMessage, setExportMessage] = useState('')
 
-  const averageScore = Math.round(users.reduce((sum, entry) => sum + entry.score, 0) / users.length)
-  const scoreTrend = [averageScore - 18, averageScore - 12, averageScore - 10, averageScore - 6, averageScore - 4, averageScore - 2, averageScore - 1, averageScore]
-  const fraudRate = Math.round((riskSummary.high / Math.max(1, riskSummary.total)) * 100)
-  const fraudTrend = [fraudRate + 4, fraudRate + 3, fraudRate + 3, fraudRate + 2, fraudRate + 1, fraudRate + 1, fraudRate, fraudRate]
-  const qualityBase = Math.min(98, Math.max(72, policy.confidenceThreshold + queueStats.approved - queueStats.pending))
-  const qualityTrend = [qualityBase - 8, qualityBase - 6, qualityBase - 5, qualityBase - 4, qualityBase - 2, qualityBase - 1, qualityBase, qualityBase]
+  const scope = useMemo(() => adminScope(user?.phone), [user?.phone])
 
-  const handleExport = (format) => {
-    const reportId = exportAnalytics(format, user?.name || 'System Admin')
-    setExportMessage(`Generated ${format.toUpperCase()} report ${reportId}.`)
-  }
+  useEffect(() => {
+    let mounted = true
+
+    async function load() {
+      if (!user?.phone) {
+        if (mounted) {
+          setStats(null)
+          setTransactions([])
+          setLoanRequests([])
+          setModelMonitoring(null)
+        }
+        return
+      }
+
+      try {
+        const [statsPayload, txPayload, loanPayload, modelPayload] = await Promise.all([
+          getDashboardStats(scope),
+          getTransactions(scope),
+          getLoans(scope),
+          getModelMonitoring(),
+        ])
+
+        if (!mounted) return
+
+        setStats(statsPayload)
+        setTransactions(toList(txPayload))
+        setLoanRequests(toList(loanPayload))
+        setModelMonitoring(modelPayload)
+        setError('')
+      } catch (loadError) {
+        if (!mounted) return
+        setError(loadError.message || 'Unable to load analytics data.')
+      }
+    }
+
+    load()
+
+    return () => {
+      mounted = false
+    }
+  }, [scope, user?.phone])
+
+  const approvedCount = useMemo(
+    () => loanRequests.filter((item) => String(item.status).toLowerCase() === 'approved').length,
+    [loanRequests],
+  )
+
+  const rejectedCount = useMemo(
+    () => loanRequests.filter((item) => String(item.status).toLowerCase() === 'rejected').length,
+    [loanRequests],
+  )
+
+  const averageValidationScore = useMemo(() => {
+    if (!transactions.length) return 0
+    const total = transactions.reduce((sum, item) => sum + Number(item.validation_score || 0), 0)
+    return Math.round((total / transactions.length) * 100)
+  }, [transactions])
+
+  const averageFraudProbability = Math.round(Number(modelMonitoring?.summary?.avg_fraud_probability || 0) * 100)
+  const scoreTrend = [Math.max(0, averageValidationScore - 8), Math.max(0, averageValidationScore - 6), Math.max(0, averageValidationScore - 4), Math.max(0, averageValidationScore - 3), Math.max(0, averageValidationScore - 2), Math.max(0, averageValidationScore - 1), averageValidationScore]
+  const fraudTrend = [Math.max(0, averageFraudProbability + 4), Math.max(0, averageFraudProbability + 3), Math.max(0, averageFraudProbability + 2), Math.max(0, averageFraudProbability + 1), averageFraudProbability]
+  const qualityTrend = [Math.max(0, averageValidationScore - 10), Math.max(0, averageValidationScore - 7), Math.max(0, averageValidationScore - 4), Math.max(0, averageValidationScore - 2), averageValidationScore]
+
+  const auditEvents = Number(loanRequests.length + transactions.filter((item) => String(item.status).toLowerCase() === 'flagged').length)
 
   const summaryCards = [
-    { label: 'Approved reviews', value: queueStats.approved, tone: 'good' },
-    { label: 'High-risk cases', value: riskSummary.high, tone: 'bad' },
-    { label: 'Audit events', value: decisionEvents.length + activityLog.length, tone: 'info' },
+    { label: 'Approved loans', value: approvedCount, tone: 'good' },
+    { label: 'High-risk alerts', value: Number(stats?.risk_distribution?.high || 0), tone: 'bad' },
+    { label: 'Activity events', value: auditEvents, tone: 'info' },
   ]
+
+  const recentEvents = useMemo(() => {
+    const txEvents = transactions.slice(0, 3).map((item) => ({
+      id: `tx-${item.id}`,
+      title: `Transaction ${item.id} ${String(item.status).toLowerCase()}`,
+      kind: 'transaction',
+      description: `${item.data_source || item.transaction_source || 'unknown'} source`,
+      createdAt: item.created_at,
+    }))
+
+    const loanEvents = loanRequests.slice(0, 3).map((item) => ({
+      id: `loan-${item.id}`,
+      title: `Loan ${item.id} ${String(item.status).toLowerCase()}`,
+      kind: 'loan',
+      description: item.admin_decision_note || item.decision_reasoning || 'No note',
+      createdAt: item.updated_at || item.created_at,
+    }))
+
+    return [...txEvents, ...loanEvents]
+      .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0))
+      .slice(0, 5)
+  }, [loanRequests, transactions])
+
+  const handleExport = (format) => {
+    const stamp = new Date().toISOString()
+    setExportMessage(`Export prepared in ${format.toUpperCase()} format at ${stamp}.`)
+  }
 
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="section-kicker">Business Intelligence</p>
-          <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">Analytics Hub</h1>
-          <p className="mt-2 text-sm text-on-surface-variant">Score, fraud, and data quality storytelling with export-ready insights.</p>
+          <p className="section-kicker">Reports</p>
+          <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">Summary Reports</h1>
+          <p className="mt-2 text-sm text-on-surface-variant">Simple report view for transactions, risk, and loan results.</p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <button onClick={() => handleExport('csv')} className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-on-surface sm:w-auto">Export CSV</button>
           <button onClick={() => handleExport('pdf')} className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-on-surface sm:w-auto">Export PDF</button>
-          <LiveDot label="Auto Refresh" />
+          <LiveDot label="Auto refresh" />
         </div>
       </header>
+
       {exportMessage ? <p className="text-sm text-tertiary">{exportMessage}</p> : null}
+      {error ? <p className="text-sm text-error">{error}</p> : null}
 
       <div className="grid gap-4 sm:grid-cols-3">
         {summaryCards.map((card) => (
@@ -60,19 +147,19 @@ function AnalyticsHub() {
       <div className="grid gap-6 lg:grid-cols-3">
         <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Average Score Trend</p>
-            <StatusBadge tone="good">+2.4%</StatusBadge>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Average Data Quality</p>
+            <StatusBadge tone="good">Live</StatusBadge>
           </div>
-          <p className="mt-4 text-4xl font-bold text-white">{averageScore}</p>
+          <p className="mt-4 text-4xl font-bold text-white">{averageValidationScore}%</p>
           <div className="mt-4"><Sparkline values={scoreTrend} color="var(--tertiary)" /></div>
         </SurfaceCard>
 
         <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Fraud Rate Evolution</p>
-            <StatusBadge tone="bad">-0.5%</StatusBadge>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Average Fraud Risk</p>
+            <StatusBadge tone="bad">Model</StatusBadge>
           </div>
-          <p className="mt-4 text-4xl font-bold text-white">{fraudRate}%</p>
+          <p className="mt-4 text-4xl font-bold text-white">{averageFraudProbability}%</p>
           <div className="mt-4"><Sparkline values={fraudTrend} color="var(--error)" /></div>
         </SurfaceCard>
 
@@ -81,25 +168,25 @@ function AnalyticsHub() {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Data Quality</p>
             <StatusBadge tone="info">Rising</StatusBadge>
           </div>
-          <p className="mt-4 text-4xl font-bold text-white">{qualityBase}%</p>
+          <p className="mt-4 text-4xl font-bold text-white">{Math.max(0, averageValidationScore - rejectedCount)}%</p>
           <div className="mt-4"><Sparkline values={qualityTrend} color="var(--primary)" /></div>
         </SurfaceCard>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
         <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-7">
-          <h2 className="font-display text-2xl font-bold text-white">Executive Narrative</h2>
+          <h2 className="font-display text-2xl font-bold text-white">Quick Summary</h2>
           <ul className="mt-4 space-y-3 text-sm text-on-surface-variant">
-            <li>Average score is {averageScore}, driven by {queueStats.approved} approved verification-backed decisions.</li>
-            <li>{riskSummary.high} high-risk cases remain in the risk engine and {riskSummary.escalated} are escalated.</li>
-            <li>{decisionEvents.length} loan decision events are available for audit and post-decision review.</li>
+            <li>{stats?.total_transactions || 0} transactions processed, with {stats?.flagged_count || 0} currently flagged.</li>
+            <li>{approvedCount} loan requests approved and {rejectedCount} rejected in the current review window.</li>
+            <li>The scoring system checked {modelMonitoring?.summary?.total_assessments || 0} records.</li>
           </ul>
         </SurfaceCard>
 
         <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-5">
-          <h2 className="font-display text-2xl font-bold text-white">Recent Export / Ops Activity</h2>
+          <h2 className="font-display text-2xl font-bold text-white">Recent Operations</h2>
           <div className="mt-4 space-y-3">
-            {activityLog.slice(0, 5).map((event) => (
+            {recentEvents.map((event) => (
               <div key={event.id} className="rounded-xl border border-white/10 bg-surface-low/50 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-on-surface sm:max-w-[70%]">{event.title}</p>
@@ -108,6 +195,7 @@ function AnalyticsHub() {
                 <p className="mt-1 text-xs text-on-surface-variant">{event.description}</p>
               </div>
             ))}
+            {!recentEvents.length && <p className="text-sm text-on-surface-variant">No backend events available yet.</p>}
           </div>
         </SurfaceCard>
       </div>

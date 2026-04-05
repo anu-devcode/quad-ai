@@ -1,193 +1,378 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts'
 import { SurfaceCard } from '../../../components/ui'
-import { useVerification } from '../../../context/VerificationContext'
-import { LiveDot, MiniBarTrend, RadialGauge, Sparkline, StatusBadge, TooltipHint } from '../../../components/dashboard/AdminVisuals'
-import { useAdminOps } from '../../../context/AdminOpsContext'
+import {
+  Users,
+  AlertCircle,
+  CheckCircle,
+  Target,
+  Activity,
+  Inbox,
+  RefreshCw,
+  FileText,
+} from 'lucide-react'
 import { useAuth } from '../../../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { adminScope, getAdminUsers, getDashboardStats, getLoans, getModelMonitoring, getTransactions, toList } from '../../../services/campusApi'
 
-function AdminOverview() {
-   const navigate = useNavigate()
-   const { user } = useAuth()
-   const { queueStats, decisionEvents, loanRequests } = useVerification()
-   const { activityLog, riskCases, riskSummary, policy, modelSummary, updateRiskCaseStatus } = useAdminOps()
-   const [message, setMessage] = useState('')
 
-   const kpis = [
-      { label: 'Active Verifications', value: queueStats.pending + queueStats.pendingLoanRequests, delta: '+14.2%', tone: 'warn', trend: [12, 15, 18, 21, 20, 24, 27] },
-      { label: 'High Risk Cases', value: riskSummary.high, delta: `${policy.riskThreshold}% threshold`, tone: riskSummary.high > 1 ? 'bad' : 'warn', trend: [9, 8, 7, 7, 6, 5, riskSummary.high] },
-      { label: 'Approval Throughput', value: queueStats.approved, delta: '+8.1%', tone: 'good', trend: [9, 10, 12, 15, 14, 17, 19] },
-      { label: 'Models Calibrating', value: modelSummary.calibrating, delta: `${modelSummary.active} active`, tone: 'info', trend: [1, 1, 2, 1, 1, 2, modelSummary.calibrating] },
-   ]
-
-   const queueLoad = queueStats.total === 0 ? 0 : ((queueStats.pending + queueStats.pendingLoanRequests) / Math.max(1, queueStats.total)) * 100
-
-   const latestFeed = useMemo(() => {
-      const decisionFeed = decisionEvents.map((event) => ({
-         id: event.id,
-         title: `${event.ownerName} ${event.decision.toLowerCase()}`,
-         note: event.note || 'No note provided.',
-         createdAt: event.createdAt,
-         tone: event.decision === 'Approved' ? 'good' : 'bad',
-      }))
-
-      const activityFeed = activityLog.map((event) => ({
-         id: event.id,
-         title: event.title,
-         note: event.description,
-         createdAt: event.createdAt,
-         tone: event.kind === 'risk' || event.kind === 'user' ? 'warn' : event.kind === 'model' ? 'info' : 'neutral',
-      }))
-
-      return [...decisionFeed, ...activityFeed]
-         .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
-         .slice(0, 5)
-   }, [decisionEvents, activityLog])
-
-   const actor = user?.name || 'System Admin'
-
-   const priorityCards = [
-      { label: 'Open risk cases', value: riskSummary.open, tone: 'warn' },
-      { label: 'Escalated now', value: riskSummary.escalated, tone: 'bad' },
-      { label: 'Policy threshold', value: `${policy.riskThreshold}%`, tone: 'info' },
-   ]
-
-   const handleEscalateRiskBatch = () => {
-      const openCase = riskCases.find((entry) => entry.status === 'Open')
-      if (!openCase) {
-         setMessage('No open cases available for escalation.')
-         return
-      }
-      updateRiskCaseStatus(openCase.id, 'Escalated', actor)
-      setMessage(`Escalated ${openCase.user} from Control Center.`)
-   }
-
-   return (
-      <div className="mx-auto max-w-7xl space-y-8 animate-enter">
-         <header className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-               <p className="section-kicker">AI Financial Control Center</p>
-               <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">Control Center</h1>
-               <p className="mt-2 text-sm text-on-surface-variant">Command every trust decision from one action-first workspace.</p>
-            </div>
-            <div className="flex items-center gap-3">
-               <LiveDot label="Live telemetry" />
-               <StatusBadge tone="info">Latency 14ms</StatusBadge>
-            </div>
-         </header>
-         {message ? <p className="text-sm text-tertiary">{message}</p> : null}
-
-         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {kpis.map((kpi) => (
-               <SurfaceCard key={kpi.label} className="glass-surface border-white/10 p-4 sm:p-5">
-                  <div className="flex items-start justify-between gap-3">
-                     <p className="text-xs uppercase tracking-[0.18em] text-on-surface-variant">{kpi.label}</p>
-                     <StatusBadge tone={kpi.tone}>{kpi.delta}</StatusBadge>
-                  </div>
-                  <p className="mt-3 text-3xl font-bold text-white">{kpi.value}</p>
-                  <div className="mt-3">
-                     <Sparkline values={kpi.trend} />
-                  </div>
-               </SurfaceCard>
-            ))}
-         </div>
-
-         <div className="grid gap-4 sm:grid-cols-3">
-            {priorityCards.map((card) => (
-               <SurfaceCard key={card.label} className="glass-surface border-white/10 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">{card.label}</p>
-                     <StatusBadge tone={card.tone}>{card.label.split(' ')[0]}</StatusBadge>
-                  </div>
-                  <p className="mt-3 text-2xl font-bold text-white">{card.value}</p>
-               </SurfaceCard>
-            ))}
-         </div>
-
-         <div className="grid gap-6 lg:grid-cols-12">
-            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-8">
-               <div className="flex items-center justify-between gap-3">
-                  <h2 className="font-display text-xl font-semibold text-white">Decision Throughput Story</h2>
-                  <TooltipHint text="Real-time blend of proof queue and loan review flow." />
-               </div>
-               <div className="mt-6 grid gap-5 md:grid-cols-3">
-                  <div className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
-                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">Queue Load</p>
-                     <div className="mt-4 flex justify-center">
-                        <RadialGauge value={queueLoad} max={100} tone={queueLoad > 70 ? 'error' : 'primary'} size={130} />
-                     </div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
-                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">Hourly Reviews</p>
-                     <div className="mt-4">
-                        <MiniBarTrend values={[5, 7, 6, 10, 12, 11, 14, 16]} colorClass="bg-primary/70" />
-                     </div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
-                     <p className="text-xs uppercase tracking-[0.14em] text-on-surface-variant">Loan Approvals</p>
-                     <div className="mt-4">
-                        <MiniBarTrend values={[4, 5, 5, 6, 7, 8, 8, 9]} colorClass="bg-tertiary/70" />
-                     </div>
-                  </div>
-               </div>
-            </SurfaceCard>
-
-            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-4">
-               <h2 className="font-display text-xl font-semibold text-white">Action Console</h2>
-               <p className="mt-2 text-sm text-on-surface-variant">Route teams directly into the highest-impact tasks.</p>
-               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                  <button onClick={() => navigate('/admin/review')} className="w-full rounded-xl bg-primary/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Open Evidence Lab</button>
-                  <button onClick={handleEscalateRiskBatch} className="w-full rounded-xl bg-error/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-error">Escalate Risk Batch</button>
-                  <button onClick={() => navigate('/admin/config')} className="w-full rounded-xl bg-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-on-surface sm:col-span-2 lg:col-span-1">Sync Policy Thresholds</button>
-               </div>
-            </SurfaceCard>
-         </div>
-
-         <div className="grid gap-6 lg:grid-cols-12">
-            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-7">
-               <div className="flex items-center justify-between">
-                  <h2 className="font-display text-xl font-semibold text-white">Live Operations Feed</h2>
-                  <StatusBadge tone="neutral">{decisionEvents.length + activityLog.length} total</StatusBadge>
-               </div>
-               <div className="mt-4 space-y-3">
-                  {latestFeed.length === 0 && <p className="text-sm text-on-surface-variant">No decisions recorded yet.</p>}
-                  {latestFeed.map((event) => (
-                     <div key={event.id} className="rounded-xl border border-white/10 bg-surface-low/50 p-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                           <p className="text-sm font-semibold text-on-surface sm:max-w-[70%]">{event.title}</p>
-                           <StatusBadge tone={event.tone}>Event</StatusBadge>
-                        </div>
-                        <p className="mt-1 text-xs text-on-surface-variant">{event.note}</p>
-                     </div>
-                  ))}
-               </div>
-            </SurfaceCard>
-
-            <SurfaceCard className="glass-surface border-white/10 p-5 sm:p-6 lg:col-span-5">
-               <h2 className="font-display text-xl font-semibold text-white">Loan Signal Snapshot</h2>
-               <div className="mt-4 grid gap-3">
-                  {loanRequests.slice(0, 5).map((loan) => (
-                     <div key={loan.id} className="rounded-xl border border-white/10 bg-surface-low/50 px-4 py-3">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                           <div>
-                              <p className="text-sm font-semibold text-on-surface">{loan.ownerName}</p>
-                              <p className="text-xs text-on-surface-variant">${loan.requestedAmount.toLocaleString()}</p>
-                           </div>
-                           <StatusBadge tone={loan.status === 'Approved' ? 'good' : loan.status === 'Rejected' ? 'bad' : 'warn'}>{loan.status}</StatusBadge>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-                           <span>Base ${loan.baseCeiling.toLocaleString()}</span>
-                           <span>•</span>
-                           <span>Adj ${loan.adjustedCeiling.toLocaleString()}</span>
-                        </div>
-                     </div>
-                  ))}
-                  {loanRequests.length === 0 ? <p className="text-sm text-on-surface-variant">No recent loan requests.</p> : null}
-               </div>
-            </SurfaceCard>
-         </div>
-      </div>
-   )
+function formatPercent(value) {
+  return `${Number(value || 0).toFixed(1)}%`
 }
 
-export default AdminOverview
+
+function formatShortAgo(dateValue) {
+  if (!dateValue) return 'unknown time'
+  const now = Date.now()
+  const then = new Date(dateValue).getTime()
+  if (Number.isNaN(then)) return 'unknown time'
+  const deltaMinutes = Math.max(0, Math.floor((now - then) / 60000))
+  if (deltaMinutes < 1) return 'just now'
+  if (deltaMinutes < 60) return `${deltaMinutes}m ago`
+  const hours = Math.floor(deltaMinutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+
+function buildLastSevenDayTrend(transactions) {
+  const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const slots = []
+  const now = new Date()
+  for (let i = 6; i >= 0; i -= 1) {
+    const day = new Date(now)
+    day.setDate(now.getDate() - i)
+    const key = day.toISOString().slice(0, 10)
+    slots.push({ key, day: labels[day.getDay()], alerts: 0 })
+  }
+
+  const byDay = new Map(slots.map((slot) => [slot.key, slot]))
+  transactions
+    .filter((item) => String(item.status).toLowerCase() === 'flagged')
+    .forEach((item) => {
+      const key = item?.created_at ? new Date(item.created_at).toISOString().slice(0, 10) : null
+      if (!key || !byDay.has(key)) return
+      byDay.get(key).alerts += 1
+    })
+
+  return slots.map(({ day, alerts }) => ({ day, alerts }))
+}
+
+
+export default function AdminOverview() {
+  const { user } = useAuth()
+  const [stats, setStats] = useState(null)
+  const [transactions, setTransactions] = useState([])
+  const [loans, setLoans] = useState([])
+  const [adminUsers, setAdminUsers] = useState([])
+  const [adminSummary, setAdminSummary] = useState(null)
+  const [modelMonitoring, setModelMonitoring] = useState(null)
+  const [error, setError] = useState('')
+
+  const scope = useMemo(() => adminScope(user?.phone), [user?.phone])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function load() {
+      if (!user?.phone) {
+        if (mounted) {
+          setStats(null)
+          setTransactions([])
+          setLoans([])
+          setAdminUsers([])
+          setAdminSummary(null)
+          setModelMonitoring(null)
+        }
+        return
+      }
+
+      try {
+        const [statsPayload, txPayload, loanPayload, userPayload, modelPayload] = await Promise.all([
+          getDashboardStats(scope),
+          getTransactions(scope),
+          getLoans(scope),
+          getAdminUsers(scope),
+          getModelMonitoring(),
+        ])
+
+        if (!mounted) return
+
+        setStats(statsPayload)
+        setTransactions(toList(txPayload))
+        setLoans(toList(loanPayload))
+        setAdminUsers(Array.isArray(userPayload?.users) ? userPayload.users : [])
+        setAdminSummary(userPayload?.summary || null)
+        setModelMonitoring(modelPayload)
+        setError('')
+      } catch (loadError) {
+        if (!mounted) return
+        setError(loadError.message || 'Unable to load admin dashboard data.')
+      }
+    }
+
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [scope, user?.phone])
+
+  const totalUsers = Number(adminSummary?.total_users ?? adminUsers.length)
+  const activeLoans = loans.filter((item) => !['approved', 'rejected'].includes(String(item.status).toLowerCase())).length
+  const riskAlerts = Number(stats?.flagged_count ?? 0)
+  const approvedLoans = loans.filter((item) => String(item.status).toLowerCase() === 'approved').length
+  const approvalRate = loans.length ? (approvedLoans / loans.length) * 100 : 0
+  const systemConfidence = Number(modelMonitoring?.summary?.avg_confidence_level || 0) * 100
+
+  const scoreData = useMemo(() => {
+    const bins = [
+      { name: '300-500', min: 300, max: 500, users: 0 },
+      { name: '501-650', min: 501, max: 650, users: 0 },
+      { name: '651-750', min: 651, max: 750, users: 0 },
+      { name: '751-850', min: 751, max: 850, users: 0 },
+    ]
+
+    adminUsers.forEach((entry) => {
+      const score = Number(entry?.score || 0)
+      const target = bins.find((bin) => score >= bin.min && score <= bin.max)
+      if (target) target.users += 1
+    })
+    return bins.map(({ name, users }) => ({ name, users }))
+  }, [adminUsers])
+
+  const fraudTrend = useMemo(() => buildLastSevenDayTrend(transactions), [transactions])
+
+  const riskBreakdown = useMemo(() => {
+    const low = Number(stats?.risk_distribution?.low ?? 0)
+    const medium = Number(stats?.risk_distribution?.medium ?? 0)
+    const high = Number(stats?.risk_distribution?.high ?? 0)
+    const total = Math.max(1, low + medium + high)
+    return [
+      { name: 'Safe', value: Number(((low / total) * 100).toFixed(1)), color: 'var(--safe)' },
+      { name: 'Warning', value: Number(((medium / total) * 100).toFixed(1)), color: 'var(--warning)' },
+      { name: 'Risk', value: Number(((high / total) * 100).toFixed(1)), color: 'var(--risk)' },
+    ]
+  }, [stats])
+
+  const recentActivity = useMemo(() => {
+    const txEvents = transactions.slice(0, 6).map((item) => ({
+      key: `tx-${item.id}`,
+      msg: `Transaction ${item.id} is ${String(item.status).toLowerCase()}`,
+      time: formatShortAgo(item.created_at),
+      type: String(item.status).toLowerCase() === 'flagged' ? 'risk' : 'info',
+      at: item.created_at,
+    }))
+
+    const loanEvents = loans.slice(0, 6).map((item) => ({
+      key: `loan-${item.id}`,
+      msg: `Loan ${item.id} is ${String(item.status).toLowerCase()}`,
+      time: formatShortAgo(item.updated_at || item.created_at),
+      type: String(item.status).toLowerCase() === 'rejected' ? 'risk' : 'primary',
+      at: item.updated_at || item.created_at,
+    }))
+
+    return [...txEvents, ...loanEvents]
+      .sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0))
+      .slice(0, 6)
+  }, [loans, transactions])
+
+  const flaggedUsers = Number(adminSummary?.flagged_users ?? 0)
+  const pendingLoanQueue = loans.filter((item) => ['submitted', 'evaluating', 'evaluated'].includes(String(item.status).toLowerCase())).length
+  const pendingEvidenceQueue = Number(stats?.pending_count ?? transactions.filter((item) => String(item.status).toLowerCase() === 'pending').length)
+
+  const statCards = [
+    {
+      label: 'Total Users',
+      value: totalUsers.toLocaleString(),
+      icon: <Users className="w-5 h-5 text-info" />,
+      trend: `${flaggedUsers} flagged`,
+      color: 'border-info/20 bg-info/5',
+    },
+    {
+      label: 'Active Loans',
+      value: activeLoans.toLocaleString(),
+      icon: <Activity className="w-5 h-5 text-primary" />,
+      trend: `${pendingLoanQueue} pending`,
+      color: 'border-primary/20 bg-primary/5',
+    },
+    {
+      label: 'Risk Alerts',
+      value: riskAlerts.toLocaleString(),
+      icon: <AlertCircle className="w-5 h-5 text-risk" />,
+      trend: `${Number(stats?.total_transactions ?? 0)} transactions`,
+      color: 'border-risk/20 bg-risk/5',
+    },
+    {
+      label: 'Approval Rate',
+      value: formatPercent(approvalRate),
+      icon: <CheckCircle className="w-5 h-5 text-safe" />,
+      trend: `${approvedLoans} approved`,
+      color: 'border-safe/20 bg-safe/5',
+    },
+    {
+      label: 'System Confidence',
+      value: formatPercent(systemConfidence),
+      icon: <Target className="w-5 h-5 text-tertiary" />,
+      trend: `${Number(modelMonitoring?.summary?.total_assessments ?? 0)} assessments`,
+      color: 'border-tertiary/20 bg-tertiary/5',
+    },
+  ]
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-display font-bold text-white tracking-tight">System Control Center</h1>
+        <p className="text-on-surface-variant text-sm">Real-time intelligence and system-wide action hub.</p>
+      </div>
+
+      {error ? <p className="text-sm text-error">{error}</p> : null}
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        {statCards.map((stat) => (
+          <div key={stat.label} className={`glass-card rounded-2xl p-6 border transition-transform hover:-translate-y-1 ${stat.color} relative overflow-hidden group`}>
+            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-150 transition-transform duration-500">
+              {stat.icon}
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-white/5 rounded-xl border border-white/10">{stat.icon}</div>
+              <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">{stat.label}</p>
+            </div>
+            <h3 className="text-3xl font-display font-bold text-white mb-2">{stat.value}</h3>
+            <p className="text-xs font-semibold text-on-surface-variant">{stat.trend}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <SurfaceCard className="glass-card p-6 h-[400px] flex flex-col">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Credit Score Distribution</h3>
+            <div className="flex-1 w-full min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={scoreData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                    contentStyle={{ backgroundColor: 'rgba(13, 19, 32, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                  />
+                  <Bar dataKey="users" fill="url(#colorScore)" radius={[6, 6, 0, 0]} />
+                  <defs>
+                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </SurfaceCard>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SurfaceCard className="glass-card p-6 h-[300px] flex flex-col">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Fraud Alert Trend</h3>
+              <div className="flex-1 w-full min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={fraudTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="day" stroke="rgba(255,255,255,0.3)" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'rgba(13, 19, 32, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                    <Line type="monotone" dataKey="alerts" stroke="var(--risk)" strokeWidth={3} dot={{ r: 4, fill: 'var(--risk)' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </SurfaceCard>
+
+            <SurfaceCard className="glass-card p-6 h-[300px] flex flex-col items-center">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant w-full mb-2">Risk Breakdown</h3>
+              <div className="flex-1 w-full min-h-0 relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={riskBreakdown} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                      {riskBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: 'rgba(13, 19, 32, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <p className="font-display font-bold text-2xl">100%</p>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-2">
+                {riskBreakdown.map((entry, index) => (
+                  <div key={index} className="flex items-center gap-2 text-xs text-on-surface-variant font-medium">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                    {entry.name}
+                  </div>
+                ))}
+              </div>
+            </SurfaceCard>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <SurfaceCard className="glass-card p-6">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-primary" />
+              Quick Actions
+            </h3>
+            <div className="space-y-3">
+              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-risk/10 border border-risk/20 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-risk" />
+                  <span className="font-semibold text-white">Review Flagged Users</span>
+                </div>
+                <span className="bg-risk text-white text-xs px-2 py-0.5 rounded-full font-bold group-hover:scale-110 transition-transform">{flaggedUsers} Pending</span>
+              </button>
+
+              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-warning/10 border border-warning/20 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <Inbox className="w-5 h-5 text-warning" />
+                  <span className="font-semibold text-white">Loan Requests</span>
+                </div>
+                <span className="bg-warning text-white text-xs px-2 py-0.5 rounded-full font-bold group-hover:scale-110 transition-transform">{pendingLoanQueue} Queue</span>
+              </button>
+
+              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-info/10 border border-info/20 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-info" />
+                  <span className="font-semibold text-white">Evidence Approval</span>
+                </div>
+                <span className="bg-info text-white text-xs px-2 py-0.5 rounded-full font-bold group-hover:scale-110 transition-transform">{pendingEvidenceQueue} Docs</span>
+              </button>
+            </div>
+          </SurfaceCard>
+
+          <SurfaceCard className="glass-card p-6">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Recent System Activity</h3>
+            <div className="space-y-4">
+              {recentActivity.map((act) => (
+                <div key={act.key} className="flex gap-4">
+                  <div className={`mt-0.5 w-2 h-2 rounded-full ${
+                    act.type === 'risk'
+                      ? 'bg-risk shadow-[0_0_8px_var(--risk)]'
+                      : act.type === 'primary'
+                        ? 'bg-primary shadow-[0_0_8px_var(--primary)]'
+                        : 'bg-info shadow-[0_0_8px_var(--info)]'
+                  } flex-shrink-0`} />
+                  <div>
+                    <p className="text-sm text-white font-medium leading-tight">{act.msg}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">{act.time}</p>
+                  </div>
+                </div>
+              ))}
+              {!recentActivity.length ? <p className="text-xs text-on-surface-variant">No recent backend activity.</p> : null}
+            </div>
+          </SurfaceCard>
+        </div>
+      </div>
+    </div>
+  )
+}

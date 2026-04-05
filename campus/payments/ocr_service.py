@@ -2,6 +2,7 @@ import cv2
 import pytesseract
 import re
 import numpy as np
+import os
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
@@ -10,6 +11,27 @@ try:
     from PyPDF2 import PdfReader
 except ImportError:  # pragma: no cover - optional dependency
     PdfReader = None
+
+
+def _configure_tesseract_binary():
+    """Best-effort tesseract binary discovery for Windows and local envs."""
+    env_cmd = os.getenv('TESSERACT_CMD')
+    if env_cmd and Path(env_cmd).exists():
+        pytesseract.pytesseract.tesseract_cmd = env_cmd
+        return
+
+    candidate_paths = [
+        Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe"),
+        Path(r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"),
+    ]
+
+    for candidate in candidate_paths:
+        if candidate.exists():
+            pytesseract.pytesseract.tesseract_cmd = str(candidate)
+            return
+
+
+_configure_tesseract_binary()
 
 class OCRService:
     SOURCE_CONFIDENCE_SCORE = {

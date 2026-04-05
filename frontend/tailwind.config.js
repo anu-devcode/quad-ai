@@ -24,6 +24,10 @@ export default {
         'on-secondary-container': 'var(--on-secondary-container)',
         error: 'var(--error)',
         'error-container': 'var(--error-container)',
+        risk: 'var(--risk)',
+        warning: 'var(--warning)',
+        safe: 'var(--safe)',
+        info: 'var(--info)',
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],

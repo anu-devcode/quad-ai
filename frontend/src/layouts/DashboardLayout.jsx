@@ -4,13 +4,13 @@ import Sidebar from '../components/dashboard/Sidebar'
 import BottomNav from '../components/dashboard/BottomNav'
 
 const pageTitles = {
-  '/portal/home': 'Operational Overview',
-  '/portal/upload': 'Evidence Ingestion',
-  '/portal/insights': 'Transaction Analytics',
-  '/portal/profile': 'Credit Intelligence',
-  '/portal/status': 'Trust & Fraud Watch',
-  '/portal/history': 'Evidence History',
-  '/portal/loan': 'Loan Intelligence',
+  '/portal/home': 'Overview',
+  '/portal/upload': 'Upload Data',
+  '/portal/insights': 'Spending Insights',
+  '/portal/profile': 'Credit Score',
+  '/portal/status': 'Safety Alerts',
+  '/portal/history': 'History',
+  '/portal/loan': 'Loan Requests',
 }
 
 function DashboardLayout() {
@@ -34,7 +34,7 @@ function DashboardLayout() {
     return <Navigate to="/portal/home" replace />
   }
 
-  const pageTitle = pageTitles[location.pathname] || 'Operational Hub'
+  const pageTitle = pageTitles[location.pathname] || 'Dashboard'
 
   return (
     <div className="flex h-screen bg-transparent text-on-surface relative isolate">
@@ -75,7 +75,7 @@ function DashboardLayout() {
             </Link>
             <div>
               <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-primary italic opacity-60">
-                [ Citizen Portal ]
+                [ User Dashboard ]
               </p>
               <h1 className="font-display text-sm sm:text-xl font-extrabold text-white tracking-tighter italic uppercase underline decoration-primary/20">
                 {pageTitle}
@@ -88,7 +88,7 @@ function DashboardLayout() {
               to="/"
               className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant hover:text-white italic transition-all decoration-white/10 underline md:flex hidden items-center gap-2"
             >
-              <span>← Return to Public</span>
+              <span>← Back to Website</span>
             </Link>
 
             <div className="flex items-center gap-4 border-l border-white/5 pl-6">

@@ -1,13 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth, isAdminPhone } from '../../context/AuthContext'
-
-// ─── OTP HELPERS ────────────────────────────────────────────────────────────
-function generateMockOtp() {
-  // Use a fixed test code '123456' in development
-  if (import.meta.env.DEV) return '123456'
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
+import { requestOtp, verifyOtp } from '../../services/campusApi'
 
 // ─── COMPONENT ──────────────────────────────────────────────────────────────
 function AdminAuthPage() {
@@ -19,8 +13,6 @@ function AdminAuthPage() {
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', ''])
   const [otpError, setOtpError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  // mock OTP stored in a ref (not state, so it doesn't re-render on change)
-  const mockOtpRef = useRef(null)
 
   // ── If already logged in as admin, redirect immediately ──────────────────
   if (isAuthenticated && isAdmin) {
@@ -32,7 +24,7 @@ function AdminAuthPage() {
   }
 
   // ── STEP 1: Submit phone ─────────────────────────────────────────────────
-  const handlePhoneSubmit = (e) => {
+  const handlePhoneSubmit = async (e) => {
     e.preventDefault()
     setPhoneError('')
 
@@ -49,20 +41,18 @@ function AdminAuthPage() {
     }
 
     setIsLoading(true)
-    // Simulate OTP delivery (replace with real API call)
-    setTimeout(() => {
-      mockOtpRef.current = generateMockOtp()
-      // In development, show it in console only — never expose to UI
-      if (import.meta.env.DEV) {
-        console.info('[AdminAuth DEV] Mock OTP →', mockOtpRef.current)
-      }
+    try {
+      await requestOtp({ phone_number: normalized, purpose: 'admin' })
       setIsLoading(false)
       setStep('otp')
-    }, 1200)
+    } catch (error) {
+      setIsLoading(false)
+      setPhoneError(error.message || 'Unable to send OTP. Please try again.')
+    }
   }
 
   // ── STEP 2: Submit OTP ──────────────────────────────────────────────────
-  const handleOtpSubmit = (e) => {
+  const handleOtpSubmit = async (e) => {
     e.preventDefault()
     setOtpError('')
 
@@ -73,21 +63,26 @@ function AdminAuthPage() {
     }
 
     setIsLoading(true)
-    setTimeout(() => {
-      if (entered !== mockOtpRef.current) {
-        setOtpError('Invalid OTP. Please try again.')
-        setIsLoading(false)
-        return
-      }
-      // Final whitelist re-check (defense in depth)
-      if (!isAdminPhone(phone)) {
+    try {
+      const normalized = phone.replace(/[\s\-().]/g, '')
+      await verifyOtp({
+        phone_number: normalized,
+        otp_code: entered,
+        purpose: 'admin',
+      })
+
+      if (!isAdminPhone(normalized)) {
         setStep('rejected')
         setIsLoading(false)
         return
       }
+
       loginAdmin(phone, { name: 'System Admin' })
       setIsLoading(false)
-    }, 800)
+    } catch (error) {
+      setOtpError(error.message || 'Invalid OTP. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   // ── OTP digit input handler ───────────────────────────────────────────────

@@ -2,27 +2,22 @@ import { Navigate, Outlet, useLocation, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
-// Admin-only nav links — only admin paths, never /portal/*
 const adminNavLinks = [
-  { name: 'Control Center', icon: '🧭', path: '/admin/overview' },
-  { name: 'Risk Engine', icon: '🚨', path: '/admin/fraud' },
-  { name: 'Evidence Lab', icon: '📥', path: '/admin/review' },
-  { name: 'User Intelligence', icon: '👥', path: '/admin/users' },
-  { name: 'AI Model Insights', icon: '🤖', path: '/admin/models' },
-  { name: 'Analytics Hub', icon: '📊', path: '/admin/analytics' },
-  { name: 'System Config', icon: '⚙️', path: '/admin/config' },
-  { name: 'Audit Trail', icon: '📜', path: '/admin/audit' },
+  { name: 'Overview', icon: '🧭', path: '/admin/overview' },
+  { name: 'Loans', icon: '💳', path: '/admin/loans' },
+  { name: 'Evidence', icon: '📥', path: '/admin/evidence' },
+  { name: 'Users', icon: '👥', path: '/admin/users' },
+  { name: 'Reports', icon: '📊', path: '/admin/analytics' },
+  { name: 'Settings', icon: '⚙️', path: '/admin/settings' },
 ]
 
 const pageTitles = {
-  '/admin/overview': 'Control Center',
-  '/admin/fraud': 'Risk Engine',
-  '/admin/review': 'Evidence Lab',
-  '/admin/users': 'User Intelligence',
-  '/admin/models': 'AI Model Insights',
-  '/admin/analytics': 'Analytics Hub',
-  '/admin/config': 'System Config',
-  '/admin/audit': 'Audit Trail',
+  '/admin/overview': 'Overview',
+  '/admin/loans': 'Loans',
+  '/admin/evidence': 'Evidence',
+  '/admin/users': 'Users',
+  '/admin/analytics': 'Analytics & Reports',
+  '/admin/settings': 'Settings',
 }
 
 function AdminLayout() {
@@ -47,7 +42,7 @@ function AdminLayout() {
     return <Navigate to="/admin/overview" replace />
   }
 
-  const pageTitle = pageTitles[location.pathname] || 'Control Hub'
+  const pageTitle = pageTitles[location.pathname] || 'Admin Dashboard'
   const primaryMobileLinks = adminNavLinks.slice(0, 3)
 
   return (
@@ -87,7 +82,7 @@ function AdminLayout() {
                 Quirass
               </p>
               <p className="text-[9px] font-black uppercase text-error tracking-widest italic opacity-60">
-                Control Hub
+                Admin Panel
               </p>
             </div>
           </Link>
@@ -96,7 +91,7 @@ function AdminLayout() {
         {/* Nav */}
         <nav className="flex-1 p-6 space-y-2 overflow-y-auto">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-error mb-6 px-4 italic opacity-50 underline decoration-error/20">
-            Admin Intelligence
+            Admin Menu
           </p>
           {adminNavLinks.map((link) => {
             const isActive = location.pathname === link.path
@@ -136,7 +131,7 @@ function AdminLayout() {
             onClick={logout}
             className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-error/10 text-error text-[10px] font-black uppercase tracking-widest hover:bg-error/20 transition-all italic shadow-premium"
           >
-            Terminate Session
+            Log Out
           </button>
         </div>
       </aside>
@@ -156,7 +151,7 @@ function AdminLayout() {
             </button>
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-error italic opacity-60">
-                [ Control Hub ]
+                [ Admin Dashboard ]
               </p>
               <h1 className="font-display text-sm font-extrabold leading-none tracking-tighter text-white italic uppercase underline decoration-error/20 sm:text-xl">
                 {pageTitle}
@@ -169,13 +164,13 @@ function AdminLayout() {
               <div className="hidden text-right sm:flex sm:flex-col sm:justify-center">
                 <p className="text-xs font-black leading-tight text-white italic">{user?.name}</p>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-error italic opacity-60">
-                  System Admin
+                  Admin
                 </p>
               </div>
               <button
                 onClick={logout}
                 className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-error/10 border border-error/20 flex items-center justify-center hover:bg-error/20 transition-all text-error"
-                title="Terminate admin session"
+                title="Log out"
               >
                 🚪
               </button>
@@ -203,7 +198,7 @@ function AdminLayout() {
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-error opacity-60">Admin Navigation</p>
-                <p className="mt-1 font-display text-xl font-bold text-white">All Modules</p>
+                <p className="mt-1 font-display text-xl font-bold text-white">All Pages</p>
               </div>
               <button
                 type="button"

@@ -1,9 +1,13 @@
+import { useEffect, useMemo, useState } from 'react'
 import { SurfaceCard, TokenPill } from '../../components/ui'
-import { userTransactions } from '../../data/mockData'
+import { useAuth } from '../../context/AuthContext'
+import { getTransactions, toList } from '../../services/campusApi'
 
 function txPill(status) {
-  if (status === 'Completed') return 'good'
-  if (status === 'Pending') return 'warn'
+   const normalized = (status || '').toLowerCase()
+   if (normalized === 'completed') return 'good'
+   if (normalized === 'pending') return 'warn'
+   if (normalized === 'flagged' || normalized === 'failed') return 'bad'
   return 'neutral'
 }
 
@@ -13,6 +17,56 @@ function amountText(amount) {
 }
 
 function DashboardHistory() {
+   const { user } = useAuth()
+   const [transactions, setTransactions] = useState([])
+   const [error, setError] = useState('')
+
+   useEffect(() => {
+      let mounted = true
+
+      async function load() {
+         if (!user?.phone) {
+            if (!mounted) return
+            setTransactions([])
+            return
+         }
+
+         try {
+            const payload = await getTransactions({ external_user_key: user.phone })
+            if (!mounted) return
+            setTransactions(toList(payload))
+            setError('')
+         } catch (loadError) {
+            if (!mounted) return
+            setTransactions([])
+            setError(loadError.message || 'Unable to load your transaction history.')
+         }
+      }
+
+      load()
+
+      return () => {
+         mounted = false
+      }
+   }, [user?.phone])
+
+   const ledgerRows = useMemo(
+      () =>
+         transactions.map((tx) => {
+            const createdAt = tx?.created_at ? new Date(tx.created_at) : null
+            return {
+               id: tx.id,
+               age: createdAt ? createdAt.toLocaleString() : 'Unknown time',
+               date: createdAt ? createdAt.toISOString().slice(0, 10) : 'N/A',
+               merchant: tx?.merchant?.name || tx?.transaction_source || tx?.data_source || `Transaction ${tx.id}`,
+               category: tx?.data_source || tx?.transaction_source || 'manual',
+               amount: Number(tx?.amount || 0),
+               status: tx?.status || 'pending',
+            }
+         }),
+      [transactions]
+   )
+
   return (
     <div className="max-w-6xl mx-auto space-y-12 animate-enter">
       <header className="mb-16">
@@ -55,11 +109,11 @@ function DashboardHistory() {
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                       {userTransactions.map((tx) => (
+                       {ledgerRows.map((tx) => (
                           <tr key={tx.id} className="group hover:bg-white/5 transition-all cursor-pointer">
                              <td className="px-10 py-8">
                                 <p className="text-[10px] font-black text-on-surface-variant italic opacity-60 mb-1">{tx.age}</p>
-                                <p className="text-xs font-bold text-white italic">2026-03-{(Math.floor(Math.random() * 20) + 10)}</p>
+                                <p className="text-xs font-bold text-white italic">{tx.date}</p>
                              </td>
                              <td className="px-10 py-8">
                                 <p className="text-sm font-black text-white italic uppercase tracking-tight group-hover:text-primary transition-colors">{tx.merchant}</p>
@@ -76,12 +130,19 @@ function DashboardHistory() {
                              </td>
                           </tr>
                        ))}
+                       {ledgerRows.length === 0 && (
+                          <tr>
+                             <td className="px-10 py-8 text-sm text-on-surface-variant" colSpan={5}>
+                                No transactions found for your profile yet.
+                             </td>
+                          </tr>
+                       )}
                     </tbody>
                  </table>
               </div>
               
               <div className="p-10 border-t border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                 <p className="text-[10px] font-black text-on-surface-variant italic opacity-40 uppercase tracking-[0.2em]">Showing Last 24 Operational Entries</p>
+                 <p className="text-[10px] font-black text-on-surface-variant italic opacity-40 uppercase tracking-[0.2em]">Showing {ledgerRows.length} Profile Entries</p>
                  <div className="flex gap-4">
                     <button className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-white transition-all">←</button>
                     <button className="h-10 w-10 rounded-xl bg-primary border border-primary text-white flex items-center justify-center shadow-premium">1</button>
@@ -92,6 +153,7 @@ function DashboardHistory() {
            </SurfaceCard>
         </div>
       </div>
+         {error && <p className="text-sm text-error">{error}</p>}
     </div>
   )
 }

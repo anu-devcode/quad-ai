@@ -1,14 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { useAuth, isAdminPhone } from '../context/AuthContext'
 import { PremiumButton, SurfaceCard } from '../components/ui'
-
-// Mock OTP for demo — replace with real API
-function generateMockOtp() {
-  // Use a fixed test code '123456' in development
-  if (import.meta.env.DEV) return '123456'
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
+import { requestOtp, verifyOtp } from '../services/campusApi'
 
 function AuthPage() {
   const { isAuthenticated, isAdmin, loginUser } = useAuth()
@@ -19,7 +13,6 @@ function AuthPage() {
   const [otpError, setOtpError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [profile, setProfile] = useState({ name: '', region: 'Addis Ababa Hub' })
-  const mockOtpRef = useRef(null)
 
   // ── Redirects ─────────────────────────────────────────────────────────────
   if (isAuthenticated && isAdmin) {
@@ -30,7 +23,7 @@ function AuthPage() {
   }
 
   // ── Handle phone submit ───────────────────────────────────────────────────
-  const handlePhoneSubmit = (e) => {
+  const handlePhoneSubmit = async (e) => {
     e.preventDefault()
     setPhoneError('')
 
@@ -47,33 +40,37 @@ function AuthPage() {
     }
 
     setIsLoading(true)
-    setTimeout(() => {
-      mockOtpRef.current = generateMockOtp()
-      if (import.meta.env.DEV) {
-        console.info('[UserAuth DEV] Mock OTP →', mockOtpRef.current)
-      }
+    try {
+      await requestOtp({ phone_number: normalized, purpose: 'user' })
       setIsLoading(false)
       setAuthStep('otp')
-    }, 1200)
+    } catch (error) {
+      setIsLoading(false)
+      setPhoneError(error.message || 'Unable to send OTP. Please try again.')
+    }
   }
 
   // ── Handle OTP submit ─────────────────────────────────────────────────────
-  const handleOtpSubmit = (e) => {
+  const handleOtpSubmit = async (e) => {
     e.preventDefault()
     setOtpError('')
     const entered = otpDigits.join('')
     if (entered.length !== 6) { setOtpError('Enter all 6 digits.'); return }
 
     setIsLoading(true)
-    setTimeout(() => {
-      if (entered !== mockOtpRef.current) {
-        setOtpError('Invalid code. Please try again.')
-        setIsLoading(false)
-        return
-      }
+    try {
+      await verifyOtp({
+        phone_number: phoneNumber.replace(/[\s\-().]/g, ''),
+        otp_code: entered,
+        purpose: 'user',
+        name: profile.name,
+      })
       setIsLoading(false)
       setAuthStep('onboarding-1')
-    }, 800)
+    } catch (error) {
+      setOtpError(error.message || 'Invalid code. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   const handleOtpDigit = (index, value) => {

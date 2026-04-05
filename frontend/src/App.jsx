@@ -29,13 +29,11 @@ import DashboardLoan from './pages/dashboard/DashboardLoan'
 
 // Admin Control Modules (/admin/*) — only reachable via AdminLayout
 import AdminOverview from './pages/dashboard/admin/AdminOverview'
-import FraudMonitoring from './pages/dashboard/admin/FraudMonitoring'
-import DataReview from './pages/dashboard/admin/DataReview'
-import UserManagement from './pages/dashboard/admin/UserManagement'
-import ModelMonitoring from './pages/dashboard/admin/ModelMonitoring'
-import AnalyticsHub from './pages/dashboard/admin/AnalyticsHub'
-import SystemConfig from './pages/dashboard/admin/SystemConfig'
-import AuditTrail from './pages/dashboard/admin/AuditTrail'
+import AdminLoans from './pages/dashboard/admin/AdminLoans'
+import AdminEvidence from './pages/dashboard/admin/AdminEvidence'
+import AdminUsers from './pages/dashboard/admin/AdminUsers'
+import AdminAnalytics from './pages/dashboard/admin/AdminAnalytics'
+import AdminSettings from './pages/dashboard/admin/AdminSettings'
 
 function App() {
   return (
@@ -96,13 +94,11 @@ function App() {
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
         <Route path="/admin/overview" element={<AdminOverview />} />
-        <Route path="/admin/fraud" element={<FraudMonitoring />} />
-        <Route path="/admin/review" element={<DataReview />} />
-        <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="/admin/models" element={<ModelMonitoring />} />
-        <Route path="/admin/analytics" element={<AnalyticsHub />} />
-        <Route path="/admin/config" element={<SystemConfig />} />
-        <Route path="/admin/audit" element={<AuditTrail />} />
+        <Route path="/admin/loans" element={<AdminLoans />} />
+        <Route path="/admin/evidence" element={<AdminEvidence />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
       </Route>
 
       {/* ═══════════════════════════════════════════════════════════════════

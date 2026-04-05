@@ -11,9 +11,15 @@ from .models import (
 	TransactionTrust,
 	User,
 	ValidationLog,
+	OTPVerificationCode
 )
 
 
+
+
+@admin.register(OTPVerificationCode)
+class OTPVerificationCodeAdmin(admin.ModelAdmin):
+	list_display = ("id", "phone_number", "purpose", "is_used", "created_at", "expires_at")
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
 	list_display = ("username", "email", "student_id", "sex", "age", "is_active", "is_staff")

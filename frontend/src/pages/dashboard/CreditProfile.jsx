@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getTransactions, toList } from '../../services/campusApi'
 import { ProgressTrack, SectionHeading, SurfaceCard, TokenPill } from '../../components/ui'
+import { useAuth } from '../../context/AuthContext'
 
 function CreditProfile() {
+   const { user } = useAuth()
    const [transactions, setTransactions] = useState([])
    const [error, setError] = useState('')
 
@@ -10,13 +12,19 @@ function CreditProfile() {
       let mounted = true
 
       async function load() {
+         if (!user?.phone) {
+            if (!mounted) return
+            setTransactions([])
+            return
+         }
+
          try {
-            const payload = await getTransactions()
+            const payload = await getTransactions({ external_user_key: user.phone })
             if (!mounted) return
             setTransactions(toList(payload))
          } catch (loadError) {
             if (!mounted) return
-            setError(loadError.message || 'Unable to load case data.')
+            setError(loadError.message || 'Unable to load transaction details.')
          }
       }
 
@@ -25,7 +33,7 @@ function CreditProfile() {
       return () => {
          mounted = false
       }
-   }, [])
+   }, [user?.phone])
 
    const transactionCase = useMemo(() => {
       const candidate = transactions.find((txn) => txn.status === 'flagged') || transactions[0]
@@ -41,10 +49,10 @@ function CreditProfile() {
          fraudProbability: candidate.status === 'flagged' ? '0.80' : '0.20',
          legitimateProbability: candidate.status === 'flagged' ? '0.20' : '0.80',
          parsingSuccess: Number(candidate.parsing_success ? 1 : 0).toFixed(2),
-         sourceConfidence: candidate.source_confidence || 'unknown',
+         sourceConfidence: candidate.source_confidence || 'not available',
          validationScore: Number(candidate.validation_score || 0).toFixed(2),
-         deviceId: candidate.device_id || 'N/A',
-         ipAddress: candidate.ip_address || 'N/A',
+         deviceId: candidate.device_id || 'Not available',
+         ipAddress: candidate.ip_address || 'Not available',
          reasoning: [
             `Status currently marked as ${candidate.status || 'pending'}.`,
             `Source type is ${(candidate.transaction_source || candidate.data_source || 'manual').toString()}.`,
@@ -58,8 +66,8 @@ function CreditProfile() {
       return (
          <div className="max-w-6xl mx-auto space-y-6">
             <SurfaceCard className="glass-surface border-white/5">
-               <SectionHeading overline="Case View" title="No transactions available" />
-               <p className="text-sm text-on-surface-variant">Create or ingest a transaction to populate this view.</p>
+               <SectionHeading overline="Transaction Details" title="No transactions yet" />
+               <p className="text-sm text-on-surface-variant">Upload a transaction to see details here.</p>
                {error && <p className="mt-4 text-sm text-error">{error}</p>}
             </SurfaceCard>
          </div>
@@ -69,12 +77,12 @@ function CreditProfile() {
   return (
       <div className="max-w-6xl mx-auto space-y-10">
          <header className="space-y-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic underline decoration-primary/20">[ Case View ]</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic underline decoration-primary/20">[ Transaction Details ]</p>
             <h1 className="font-display text-4xl font-extrabold text-white tracking-tight leading-none italic uppercase">
-               Transaction <span className="text-gradient">Case View</span>
+               Transaction <span className="text-gradient">Details</span>
             </h1>
             <p className="max-w-3xl text-lg font-light italic text-on-surface-variant">
-               This screen mirrors the backend's fraud assessment output: assessment, confidence, validation logs, and reasoning.
+               Review transaction details, risk score, and system checks.
             </p>
          </header>
 
@@ -97,11 +105,11 @@ function CreditProfile() {
 
                <div className="mt-8 grid gap-4 md:grid-cols-3">
                   <div className="rounded-2xl bg-primary/10 p-4 border border-primary/20">
-                     <p className="text-[10px] uppercase tracking-widest text-primary font-bold">Fraud Probability</p>
+                     <p className="text-[10px] uppercase tracking-widest text-primary font-bold">Chance of Fraud</p>
                      <p className="mt-2 text-3xl font-black text-white">{transactionCase.fraudProbability}</p>
                   </div>
                   <div className="rounded-2xl bg-white/5 p-4 border border-white/5">
-                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Legitimate Probability</p>
+                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Chance It Is Normal</p>
                      <p className="mt-2 text-3xl font-black text-white">{transactionCase.legitimateProbability}</p>
                   </div>
                   <div className="rounded-2xl bg-white/5 p-4 border border-white/5">
@@ -111,7 +119,7 @@ function CreditProfile() {
                </div>
 
                <div className="mt-8">
-                  <h2 className="mb-4 text-sm font-black uppercase tracking-widest text-white italic underline decoration-primary/20">Why this was flagged</h2>
+                  <h2 className="mb-4 text-sm font-black uppercase tracking-widest text-white italic underline decoration-primary/20">Why this needs review</h2>
                   <div className="space-y-3">
                      {transactionCase.reasoning.map((reason) => (
                         <div key={reason} className="rounded-2xl border border-white/5 bg-white/5 p-4 text-sm text-on-surface-variant">
@@ -124,7 +132,7 @@ function CreditProfile() {
 
             <div className="space-y-6">
                <SurfaceCard className="glass-surface border-white/5">
-                  <SectionHeading overline="Technical Metadata" title="Backend input fields" />
+                  <SectionHeading overline="Transaction Details" title="Saved information" />
                   <div className="space-y-3 text-sm text-on-surface-variant">
                      <p>Device ID: <span className="text-white">{transactionCase.deviceId}</span></p>
                      <p>IP Address: <span className="text-white">{transactionCase.ipAddress}</span></p>
@@ -134,7 +142,7 @@ function CreditProfile() {
                </SurfaceCard>
 
                <SurfaceCard className="glass-surface border-white/5">
-                  <SectionHeading overline="Validation Logs" title="Manual review notes" />
+                  <SectionHeading overline="System Checks" title="Review notes" />
                   <div className="space-y-3">
                      {transactionCase.validationLogs.map((log) => (
                         <div key={`${log.check_type}-${log.id || ''}`} className="rounded-2xl bg-white/5 p-4">
@@ -149,10 +157,10 @@ function CreditProfile() {
                </SurfaceCard>
 
                <SurfaceCard className="glass-surface border-white/5">
-                  <SectionHeading overline="Confidence" title="Signal strength" />
+                  <SectionHeading overline="Confidence" title="Data confidence" />
                   <ProgressTrack value={61} />
                   <p className="mt-4 text-sm text-on-surface-variant">
-                     The case view should ultimately render the backend's fraud assessment and confidence artifacts, not a generic profile dashboard.
+                     This score shows how sure the system is about the transaction data.
                   </p>
                </SurfaceCard>
             </div>

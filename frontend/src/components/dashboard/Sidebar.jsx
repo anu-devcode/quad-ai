@@ -4,12 +4,12 @@ import { useAuth } from '../../context/AuthContext'
 // User-only nav links — no admin paths ever rendered here
 const userLinks = [
   { name: 'Home', icon: '🏠', path: '/portal/home' },
-  { name: 'Upload Evidence', icon: '📤', path: '/portal/upload' },
-  { name: 'Insights', icon: '📊', path: '/portal/insights' },
-  { name: 'Credit Profile', icon: '🧠', path: '/portal/profile' },
-  { name: 'Trust Status', icon: '🛡️', path: '/portal/status' },
+  { name: 'Upload Data', icon: '📤', path: '/portal/upload' },
+  { name: 'Spending Insights', icon: '📊', path: '/portal/insights' },
+  { name: 'Credit Score', icon: '🧠', path: '/portal/profile' },
+  { name: 'Safety Alerts', icon: '🛡️', path: '/portal/status' },
   { name: 'History', icon: '📁', path: '/portal/history' },
-  { name: 'Loan & Verification', icon: '🏦', path: '/portal/loan' },
+  { name: 'Loan Requests', icon: '🏦', path: '/portal/loan' },
 ]
 
 function Sidebar() {
@@ -35,7 +35,7 @@ function Sidebar() {
 
       <nav className="flex-1 p-6 space-y-2 overflow-y-auto">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-6 px-4 italic opacity-50 underline decoration-primary/20">
-          Citizen Evidence Portal
+          User Dashboard
         </p>
         {userLinks.map((link) => (
           <NavLink
@@ -66,13 +66,13 @@ function Sidebar() {
           to="/"
           className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-white/5 border border-white/10 text-on-surface-variant text-[10px] font-black uppercase tracking-widest hover:text-white hover:bg-white/10 transition-all italic"
         >
-          <span>← Main Infrastructure</span>
+          <span>← Main Website</span>
         </Link>
         <button
           onClick={logout}
           className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-error/10 text-error text-[10px] font-black uppercase tracking-widest hover:bg-error/20 transition-all italic shadow-premium"
         >
-          Logout Session
+          Log Out
         </button>
       </div>
     </aside>

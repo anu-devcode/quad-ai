@@ -42,6 +42,47 @@ class LoanAIRecommendation(models.TextChoices):
     APPROVE = 'approve', 'Approve'
     REJECT = 'reject', 'Reject'
 
+
+class FraudActualOutcome(models.TextChoices):
+    FRAUD = 'fraud', 'Fraud'
+    LEGITIMATE = 'legitimate', 'Legitimate'
+    UNCONFIRMED = 'unconfirmed', 'Unconfirmed'
+
+
+class NotificationRecipientScope(models.TextChoices):
+    USER = 'user', 'User'
+    ADMIN = 'admin', 'Admin'
+
+
+class NotificationCategory(models.TextChoices):
+    LOAN_UPDATE = 'loan_update', 'Loan Update'
+    FRAUD_ALERT = 'fraud_alert', 'Fraud Alert'
+    ADMIN_DECISION = 'admin_decision', 'Admin Decision'
+
+
+class NotificationDeliveryStatus(models.TextChoices):
+    QUEUED = 'queued', 'Queued'
+    SENT = 'sent', 'Sent'
+    READ = 'read', 'Read'
+
+
+class RiskAlertSeverity(models.TextChoices):
+    LOW = 'low', 'Low'
+    MEDIUM = 'medium', 'Medium'
+    HIGH = 'high', 'High'
+    CRITICAL = 'critical', 'Critical'
+
+
+class RiskAlertStatus(models.TextChoices):
+    OPEN = 'open', 'Open'
+    RESOLVED = 'resolved', 'Resolved'
+    DISMISSED = 'dismissed', 'Dismissed'
+
+
+class OTPPurpose(models.TextChoices):
+    USER = 'user', 'User'
+    ADMIN = 'admin', 'Admin'
+
 class User(AbstractUser):
     student_id = models.CharField(max_length=20, unique=True)
     sex = models.CharField(max_length=10, choices=GenderType.choices)
@@ -57,6 +98,23 @@ class User(AbstractUser):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class OTPVerificationCode(models.Model):
+    phone_number = models.CharField(max_length=32, db_index=True)
+    otp_code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=10, choices=OTPPurpose.choices, default=OTPPurpose.USER, db_index=True)
+    is_used = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['phone_number', 'purpose', 'is_used', 'expires_at']),
+        ]
+
+    def __str__(self):
+        return f"OTP {self.phone_number} ({self.purpose})"
 
 class Merchant(models.Model):
     name = models.CharField(max_length=100)
@@ -180,3 +238,82 @@ class LoanRequest(models.Model):
 
     def __str__(self):
         return f"LoanRequest {self.id} - {self.user.student_id} - {self.status}"
+
+
+class UserTrustProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trust_profile')
+    trust_score = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
+    risk_level = models.CharField(max_length=20, choices=RiskLevelType.choices, default=RiskLevelType.MEDIUM)
+    total_transactions = models.PositiveIntegerField(default=0)
+    flagged_transactions = models.PositiveIntegerField(default=0)
+    high_risk_transactions = models.PositiveIntegerField(default=0)
+    flagged_ratio = models.DecimalField(max_digits=5, decimal_places=4, default=0.0)
+    behavior_change_count = models.PositiveIntegerField(default=0)
+    last_event_type = models.CharField(max_length=60, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"TrustProfile {self.user.student_id} - {self.trust_score}"
+
+
+class FraudFeedbackRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fraud_feedback_records')
+    transaction = models.OneToOneField(
+        Transaction,
+        on_delete=models.CASCADE,
+        related_name='fraud_feedback_record',
+        null=True,
+        blank=True,
+    )
+    loan_request = models.OneToOneField(
+        LoanRequest,
+        on_delete=models.CASCADE,
+        related_name='fraud_feedback_record',
+        null=True,
+        blank=True,
+    )
+    source = models.CharField(max_length=30, default='transaction')
+    predicted_label = models.BooleanField(default=False)
+    predicted_probability = models.DecimalField(max_digits=5, decimal_places=4)
+    predicted_risk_level = models.CharField(max_length=20, choices=RiskLevelType.choices, null=True, blank=True)
+    actual_outcome = models.CharField(max_length=20, choices=FraudActualOutcome.choices, default=FraudActualOutcome.UNCONFIRMED)
+    note = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Feedback {self.id} - {self.source}"
+
+
+class SystemNotification(models.Model):
+    recipient_scope = models.CharField(max_length=20, choices=NotificationRecipientScope.choices, default=NotificationRecipientScope.USER)
+    recipient_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='system_notifications')
+    category = models.CharField(max_length=30, choices=NotificationCategory.choices)
+    title = models.CharField(max_length=160)
+    message = models.TextField()
+    related_transaction = models.ForeignKey(Transaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='system_notifications')
+    related_loan_request = models.ForeignKey(LoanRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name='system_notifications')
+    metadata = models.JSONField(default=dict, blank=True)
+    delivery_status = models.CharField(max_length=20, choices=NotificationDeliveryStatus.choices, default=NotificationDeliveryStatus.SENT)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification {self.id} - {self.category}"
+
+
+class RiskAlert(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='risk_alerts')
+    transaction = models.ForeignKey(Transaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='risk_alerts')
+    alert_type = models.CharField(max_length=80)
+    pattern_key = models.CharField(max_length=80)
+    severity = models.CharField(max_length=20, choices=RiskAlertSeverity.choices, default=RiskAlertSeverity.MEDIUM)
+    details = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=RiskAlertStatus.choices, default=RiskAlertStatus.OPEN)
+    detected_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"RiskAlert {self.id} - {self.pattern_key}"

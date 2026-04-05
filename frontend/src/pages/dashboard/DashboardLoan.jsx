@@ -3,26 +3,67 @@ import { PremiumButton, SectionHeading, SurfaceCard } from '../../components/ui'
 import { userProfile } from '../../data/mockData'
 import { useAuth } from '../../context/AuthContext'
 import { useVerification } from '../../context/VerificationContext'
+import { createLoanRequest, getLoans, toList } from '../../services/campusApi'
+import { useEffect } from 'react'
 
 function DashboardLoan() {
   const { user } = useAuth()
-  const { submitProof, submitLoanRequest, getUserSubmissions, getUserLoanRequests, getUserVerificationLayer } = useVerification()
+  const { submitProof, getUserSubmissions, getUserVerificationLayer } = useVerification()
   const [amount, setAmount] = useState('')
+  const [tenureMonths, setTenureMonths] = useState('12')
+  const [statedIncome, setStatedIncome] = useState('2500')
+  const [purpose, setPurpose] = useState('Operational liquidity')
   const [useVerificationLayer, setUseVerificationLayer] = useState(true)
   const [proofType, setProofType] = useState('Bank Statement')
   const [proofTitle, setProofTitle] = useState('')
   const [proofNotes, setProofNotes] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
+  const [loanRequests, setLoanRequests] = useState([])
+  const [loanError, setLoanError] = useState('')
+  const [loanLoading, setLoanLoading] = useState(false)
 
   const eligible = useMemo(() => Math.round((userProfile.creditScore / 850) * 8000), [])
   const submissions = getUserSubmissions(user?.phone || '')
-  const loanRequests = getUserLoanRequests(user?.phone || '')
   const verificationLayer = getUserVerificationLayer(user?.phone || '')
 
   const adjustedCeiling = eligible + verificationLayer.approved * 300
   const adjustedConfidence = Math.min(99, 84 + verificationLayer.confidenceBoost)
 
   const requestedCeiling = useVerificationLayer ? adjustedCeiling : eligible
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadLoanRequests() {
+      if (!user?.phone) {
+        if (mounted) {
+          setLoanRequests([])
+        }
+        return
+      }
+
+      setLoanLoading(true)
+      try {
+        const payload = await getLoans({ external_user_key: user.phone })
+        if (!mounted) return
+        setLoanRequests(toList(payload))
+        setLoanError('')
+      } catch (error) {
+        if (!mounted) return
+        setLoanError(error.message || 'Unable to load loan requests.')
+      } finally {
+        if (mounted) {
+          setLoanLoading(false)
+        }
+      }
+    }
+
+    loadLoanRequests()
+
+    return () => {
+      mounted = false
+    }
+  }, [user?.phone])
 
   const handleSubmitProof = (event) => {
     event.preventDefault()
@@ -44,22 +85,50 @@ function DashboardLoan() {
     setSelectedFile(null)
   }
 
-  const handleLoanRequest = () => {
-    const requestedAmount = Number(amount)
-    if (!requestedAmount || requestedAmount < 100) {
+  const handleLoanRequest = async () => {
+    if (!user?.phone) {
+      setLoanError('Session is missing user identity. Please sign in again.')
       return
     }
 
-    submitLoanRequest({
-      ownerPhone: user?.phone || 'unknown',
-      ownerName: user?.name || 'Unknown User',
-      requestedAmount,
-      baseCeiling: eligible,
-      adjustedCeiling,
-      requestedUseVerificationLayer: useVerificationLayer,
-    })
+    const requestedAmount = Number(amount)
+    const requestedTenureMonths = Number(tenureMonths)
+    const incomeValue = Number(statedIncome)
 
-    setAmount('')
+    if (!requestedAmount || requestedAmount < 100) {
+      setLoanError('Requested amount must be at least 100.')
+      return
+    }
+
+    if (!requestedTenureMonths || requestedTenureMonths < 1) {
+      setLoanError('Tenure must be at least 1 month.')
+      return
+    }
+
+    if (!incomeValue || incomeValue <= 0) {
+      setLoanError('Stated income must be greater than 0.')
+      return
+    }
+
+    setLoanLoading(true)
+    try {
+      await createLoanRequest({
+        external_user_key: user.phone,
+        requested_amount: requestedAmount,
+        requested_tenure_months: requestedTenureMonths,
+        stated_income: incomeValue,
+        purpose: purpose?.trim() || '',
+      })
+
+      const payload = await getLoans({ external_user_key: user.phone })
+      setLoanRequests(toList(payload))
+      setLoanError('')
+      setAmount('')
+    } catch (error) {
+      setLoanError(error.message || 'Unable to submit loan request.')
+    } finally {
+      setLoanLoading(false)
+    }
   }
 
   return (
@@ -100,6 +169,36 @@ function DashboardLoan() {
             className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
           />
         </label>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Tenure (Months)</span>
+            <input
+              type="number"
+              min="1"
+              value={tenureMonths}
+              onChange={(event) => setTenureMonths(event.target.value)}
+              className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Stated Income</span>
+            <input
+              type="number"
+              min="1"
+              value={statedIncome}
+              onChange={(event) => setStatedIncome(event.target.value)}
+              className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
+            />
+          </label>
+        </div>
+        <label className="mt-4 block">
+          <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Purpose</span>
+          <input
+            value={purpose}
+            onChange={(event) => setPurpose(event.target.value)}
+            className="mt-2 w-full rounded-md bg-surface-low px-4 py-3 text-sm font-medium outline-none transition focus:ring-1 focus:ring-primary/40"
+          />
+        </label>
         <div className="mt-6 rounded-xl border border-white/10 bg-surface-low/70 p-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Final Decision Inputs</p>
           <p className="mt-2 text-sm text-on-surface-variant">
@@ -131,8 +230,9 @@ function DashboardLoan() {
           </p>
         </div>
         <div className="mt-8">
-          <PremiumButton onClick={handleLoanRequest} className="w-full sm:w-auto">Request Eligibility Audit</PremiumButton>
+          <PremiumButton onClick={handleLoanRequest} className="w-full sm:w-auto" disabled={loanLoading}>Request Eligibility Audit</PremiumButton>
         </div>
+        {loanError && <p className="mt-4 text-sm text-error">{loanError}</p>}
       </SurfaceCard>
 
       <SurfaceCard level="highest" className="flex items-center border-l-2 border-secondary-container">
@@ -276,39 +376,39 @@ function DashboardLoan() {
               {loanRequests.length === 0 && (
                 <tr>
                   <td className="px-4 py-4 text-on-surface-variant" colSpan={4}>
-                    No loan eligibility requests submitted yet.
+                    {loanLoading ? 'Loading loan requests...' : 'No loan eligibility requests submitted yet.'}
                   </td>
                 </tr>
               )}
               {loanRequests.map((request) => (
                 <tr key={request.id}>
                   <td className="px-4 py-4">
-                    <p className="font-semibold text-on-surface">${request.requestedAmount.toLocaleString()}</p>
+                    <p className="font-semibold text-on-surface">${Number(request.requested_amount || 0).toLocaleString()}</p>
                     <p className="text-xs text-on-surface-variant">{request.id}</p>
                   </td>
                   <td className="px-4 py-4 text-on-surface-variant">
-                    {request.requestedUseVerificationLayer ? 'Requested ON' : 'Requested OFF'}
+                    {useVerificationLayer ? 'Requested ON' : 'Requested OFF'}
                   </td>
                   <td className="px-4 py-4">
                     <span
                       className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                        request.status === 'Approved'
+                        String(request.status).toLowerCase() === 'approved'
                           ? 'bg-tertiary/15 text-tertiary'
-                          : request.status === 'Rejected'
+                          : String(request.status).toLowerCase() === 'rejected'
                           ? 'bg-error/15 text-error'
                           : 'bg-yellow-400/15 text-yellow-400'
                       }`}
                     >
                       {request.status}
                     </span>
-                    {request.status !== 'Pending' && (
+                    {String(request.status).toLowerCase() !== 'submitted' && (
                       <p className="mt-1 text-xs text-on-surface-variant">
-                        Layer applied: {request.applyVerificationLayer ? 'Yes' : 'No'}
+                        AI: {request.ai_recommendation || 'pending'}
                       </p>
                     )}
                   </td>
                   <td className="px-4 py-4 text-xs text-on-surface-variant">
-                    {request.adminNote || 'Awaiting admin decision'}
+                    {request.admin_decision_note || request.decision_reasoning || 'Awaiting admin decision'}
                   </td>
                 </tr>
               ))}

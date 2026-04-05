@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getDashboardStats, getTransactions, toList } from '../../services/campusApi'
 import { ProgressTrack, SectionHeading, SurfaceCard, TokenPill } from '../../components/ui'
+import { useAuth } from '../../context/AuthContext'
 
 function TransactionInsights() {
+   const { user } = useAuth()
    const [stats, setStats] = useState(null)
    const [transactions, setTransactions] = useState([])
    const [error, setError] = useState('')
@@ -11,10 +13,17 @@ function TransactionInsights() {
       let mounted = true
 
       async function load() {
+         if (!user?.phone) {
+            if (!mounted) return
+            setStats(null)
+            setTransactions([])
+            return
+         }
+
          try {
             const [statsPayload, txPayload] = await Promise.all([
-               getDashboardStats(),
-               getTransactions(),
+               getDashboardStats({ external_user_key: user.phone }),
+               getTransactions({ external_user_key: user.phone }),
             ])
 
             if (!mounted) return
@@ -22,7 +31,7 @@ function TransactionInsights() {
             setTransactions(toList(txPayload))
          } catch (loadError) {
             if (!mounted) return
-            setError(loadError.message || 'Unable to load fraud overview.')
+            setError(loadError.message || 'Unable to load transaction summary.')
          }
       }
 
@@ -31,7 +40,7 @@ function TransactionInsights() {
       return () => {
          mounted = false
       }
-   }, [])
+   }, [user?.phone])
 
    const cards = useMemo(() => {
       const total = stats?.total_transactions ?? 0
@@ -42,10 +51,10 @@ function TransactionInsights() {
 
       return [
          { label: 'Total Transactions', value: total },
-         { label: 'Flagged Count', value: flagged },
+         { label: 'Needs Review', value: flagged },
          { label: 'Low Risk', value: low },
-         { label: 'High Risk', value: high },
          { label: 'Medium Risk', value: medium },
+         { label: 'High Risk', value: high },
       ]
    }, [stats])
 
@@ -62,19 +71,19 @@ function TransactionInsights() {
    const decisionFeed = useMemo(() => {
       return transactions.slice(0, 6).map((txn) => ({
          id: txn.id,
-         event: `Transaction ${txn.id} is ${txn.status}`,
-         actor: txn?.user?.username || 'system',
-         timestamp: txn?.created_at ? new Date(txn.created_at).toLocaleString() : 'unknown time',
+         event: `Transaction ${txn.id}: ${txn.status}`,
+         actor: txn?.user?.username || 'System',
+         timestamp: txn?.created_at ? new Date(txn.created_at).toLocaleString() : 'No time',
       }))
    }, [transactions])
 
   return (
       <div className="space-y-10 max-w-6xl mx-auto">
          <header className="space-y-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic underline decoration-primary/20">[ Fraud Overview ]</p>
-            <h1 className="font-display text-4xl font-extrabold text-white tracking-tight leading-none italic uppercase">Live <span className="text-gradient">Fraud Overview</span></h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic underline decoration-primary/20">[ Transactions ]</p>
+            <h1 className="font-display text-4xl font-extrabold text-white tracking-tight leading-none italic uppercase">Spending & <span className="text-gradient">Risk</span></h1>
             <p className="max-w-3xl text-lg font-light italic text-on-surface-variant">
-               This screen matches the backend's dashboard stats and risk distribution output for operators.
+               See your recent transactions and how the system rates risk.
             </p>
          </header>
 
@@ -91,7 +100,7 @@ function TransactionInsights() {
 
          <div className="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
             <SurfaceCard className="glass-surface border-white/5">
-               <SectionHeading overline="Risk Distribution" title="Low, medium, and high signals" action={<TokenPill tone="warn">backend-stats</TokenPill>} />
+               <SectionHeading overline="Risk Breakdown" title="Low, medium, and high risk" action={<TokenPill tone="warn">Live data</TokenPill>} />
                <div className="space-y-4">
                   {riskDistribution.map((item) => (
                      <div key={item.label} className="space-y-2">
@@ -106,7 +115,7 @@ function TransactionInsights() {
             </SurfaceCard>
 
             <SurfaceCard className="glass-surface border-white/5">
-               <SectionHeading overline="Recent events" title="Decision feed" />
+               <SectionHeading overline="Recent activity" title="Latest transactions" />
                <div className="space-y-3">
                   {decisionFeed.map((event) => (
                      <div key={event.id} className="rounded-2xl bg-white/5 p-4">
@@ -119,7 +128,7 @@ function TransactionInsights() {
                   ))}
                   {!decisionFeed.length && (
                      <div className="rounded-2xl bg-white/5 p-4 text-sm text-on-surface-variant">
-                        No transactions available yet.
+                        No transactions yet.
                      </div>
                   )}
                   {error && (

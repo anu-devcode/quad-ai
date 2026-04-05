@@ -26,6 +26,10 @@
     --on-secondary-container: #dce7ff;
     --error: #ef4444;
     --error-container: #7f1d1d;
+    --risk: #ef4444;
+    --warning: #f59e0b;
+    --safe: #10b981;
+    --info: #3b82f6;
 
     color: var(--on-surface);
     background-color: var(--background);

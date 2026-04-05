@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom'
 // User-only bottom nav — admin links are never rendered here
 const userLinks = [
   { name: 'Home', icon: '🏠', path: '/portal/home' },
-  { name: 'Evidence', icon: '📤', path: '/portal/upload' },
+  { name: 'Upload', icon: '📤', path: '/portal/upload' },
   { name: 'Insights', icon: '📊', path: '/portal/insights' },
-  { name: 'Loan', icon: '🏦', path: '/portal/loan' },
+  { name: 'Loans', icon: '🏦', path: '/portal/loan' },
   { name: 'History', icon: '📁', path: '/portal/history' },
 ]
 
