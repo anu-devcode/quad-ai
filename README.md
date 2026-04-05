@@ -6,6 +6,12 @@
    </a>
 </p>
 
+<p align="center">
+   <a href="https://quad-ai-brown.vercel.app/demo">
+      <img src="https://img.shields.io/badge/LIVE%20DEMO-OPEN%20FRONTEND-0B7285?style=for-the-badge&logo=vercel&logoColor=white" alt="Open Live Frontend Demo" />
+   </a>
+</p>
+
 > Quick access: [Open the Pitch Deck (PPTX)](Pitch_Deck.pptx)
 
 Place your latest pitch file at `Pitch_Deck.pptx` in the repository root so this link always works.
@@ -126,14 +132,35 @@ Our latest progress includes both Task 2a and Task 2b requirements:
 4. Continuous integration and monitoring
 
 ## Deployment
-The production deployment files are now included in the repository:
+Active frontend demo:
 
-- `docker-compose.coolify.yml` for Coolify on a DigitalOcean VPS
-- `Dockerfile.django` for the Django API
-- `Dockerfile.fastapi` for the fraud model service
-- `Dockerfile.frontend` for the public React SPA
+- https://quad-ai-brown.vercel.app/demo
 
-See `DOCKER.md` for the full environment and service wiring.
+Deployment options in this repository:
+
+- `docker-compose.coolify.yml`: full production-style stack on Coolify (frontend + Django + FastAPI + Postgres)
+- `docker-compose.yml`: local development stack for quick testing
+
+Hybrid deployment (recommended for judging/demo speed):
+
+1. Serve the React UI on Vercel (current live URL above).
+2. Deploy only backend services (`django`, `fastapi`, `db`) on your VPS/Coolify.
+3. Point frontend API calls to backend by setting `VITE_API_BASE_URL=https://<your-backend-domain>/api`.
+4. On backend, allow the Vercel origin in `DJANGO_CORS_ALLOWED_ORIGINS` and `DJANGO_CSRF_TRUSTED_ORIGINS`.
+
+Backend server limitations (presented with a winning execution plan):
+
+- On smaller servers, OCR and fraud scoring are CPU-heavy, so peak-time latency can rise.
+- Single-node deployments can queue requests during burst traffic.
+- Cold restarts after deployment may briefly increase response times.
+
+Why this still wins:
+
+- Frontend remains globally fast on Vercel regardless of backend load.
+- Backend has health checks and clear service separation for quick recovery.
+- Transaction scoring keeps operational continuity by blending local logic with external model scoring.
+
+See `DOCKER.md` for exact environment variables and service wiring.
 
 ## Contributors
 - Mohammed Sultan

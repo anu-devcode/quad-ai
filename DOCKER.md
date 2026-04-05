@@ -24,6 +24,30 @@ The Coolify stack is split into four services:
 
 The frontend is the public entrypoint. It serves the React app and proxies `/api/*` to the Django service over the internal Docker network.
 
+## Live Frontend + Backend API (Hybrid)
+
+Current live frontend UI:
+
+- https://quad-ai-brown.vercel.app/demo
+
+This is a strong demo architecture for judges: keep frontend on Vercel for speed, and run backend on Coolify/VPS.
+
+### Hybrid Steps
+
+1. Deploy backend services (`db`, `fastapi`, `django`) from `docker-compose.coolify.yml`.
+2. Keep Vercel frontend pointed to backend API with `VITE_API_BASE_URL=https://<your-backend-domain>/api`.
+3. Add the Vercel origin to backend CORS/CSRF env vars:
+	- `DJANGO_CORS_ALLOWED_ORIGINS=https://quad-ai-brown.vercel.app`
+	- `DJANGO_CSRF_TRUSTED_ORIGINS=https://quad-ai-brown.vercel.app`
+
+### Backend Limitations (Winning Framing)
+
+- Small servers can see higher latency for OCR and fraud scoring under load.
+- Burst traffic may queue on a single backend node.
+- Short warm-up periods can happen immediately after deploy/restart.
+
+These are manageable with the current architecture: frontend speed is preserved on Vercel, backend health checks detect issues quickly, and services are split cleanly for incremental scaling.
+
 ## Required Environment Variables
 
 Start from `.env.example` and set the production values in Coolify:
