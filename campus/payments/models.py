@@ -87,6 +87,9 @@ class User(AbstractUser):
     student_id = models.CharField(max_length=20, unique=True)
     sex = models.CharField(max_length=10, choices=GenderType.choices)
     age = models.IntegerField(null=True, blank=True)
+    phone_number = models.CharField(max_length=32, unique=True, null=True, blank=True, db_index=True)
+    city_region = models.CharField(max_length=120, blank=True, default='')
+    financial_institutions = models.JSONField(default=list, blank=True)
     signup_time = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     

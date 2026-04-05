@@ -5,85 +5,226 @@ import { PremiumButton, SurfaceCard } from '../components/ui'
 function LandingPage() {
   const [activeStep, setActiveStep] = useState(0)
 
+  const streamBands = Array.from({ length: 8 }, (_, i) => ({
+    id: i,
+    top: 8 + i * 11,
+    delay: `${(i * 0.45).toFixed(2)}s`,
+    duration: `${14 + (i % 4) * 2}s`,
+  }))
+
+  const backgroundParticles = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    x: 6 + (i * 11) % 92,
+    y: 10 + (i * 17) % 78,
+    delay: `${(i * 0.55).toFixed(2)}s`,
+    duration: `${7 + (i % 5) * 1.6}s`,
+  }))
+
+  const signalNodes = [
+    { id: 'wallet', x: 14, y: 22, tone: 'info', delay: '0s' },
+    { id: 'ocr', x: 28, y: 46, tone: 'primary', delay: '0.5s' },
+    { id: 'risk', x: 52, y: 34, tone: 'warning', delay: '1s' },
+    { id: 'trust', x: 74, y: 20, tone: 'safe', delay: '1.4s' },
+    { id: 'alert', x: 82, y: 52, tone: 'risk', delay: '1.8s' },
+    { id: 'ledger', x: 62, y: 68, tone: 'info', delay: '2.2s' },
+    { id: 'sms', x: 34, y: 72, tone: 'primary', delay: '2.6s' },
+    { id: 'review', x: 18, y: 58, tone: 'warning', delay: '3s' },
+  ]
+
+  const nodeMap = signalNodes.reduce((acc, node) => {
+    acc[node.id] = node
+    return acc
+  }, {})
+
+  const signalLinks = [
+    ['wallet', 'ocr'],
+    ['ocr', 'risk'],
+    ['risk', 'trust'],
+    ['risk', 'alert'],
+    ['ocr', 'sms'],
+    ['sms', 'ledger'],
+    ['ledger', 'alert'],
+    ['review', 'ocr'],
+    ['review', 'risk'],
+    ['trust', 'alert'],
+  ]
+
   const steps = [
-    { title: 'Readiness', icon: '✅', desc: 'Check whether the OCR, scoring, and persistence layers are available.' },
-    { title: 'Intake', icon: '📥', desc: 'Submit SMS, screenshots, PDFs, or structured transactions.' },
-    { title: 'Scoring', icon: '🧮', desc: 'Blend local validation with the FastAPI model output.' },
-    { title: 'Review', icon: '🧾', desc: 'Move cases into trust, fraud, or loan decision workflows.' }
+    { title: 'Signal Intake', icon: '📥', desc: 'Capture screenshots, statements, SMS logs, or manual entries in one pipeline.' },
+    { title: 'Parsing Layer', icon: '🧠', desc: 'Extract transaction fields, quality checks, and confidence markers in real time.' },
+    { title: 'Risk Decisioning', icon: '⚡', desc: 'Blend model scoring and behavioral rules to produce explainable risk decisions.' },
+    { title: 'Operator Action', icon: '🛡️', desc: 'Escalate high-risk events and publish trust outcomes to the dashboard instantly.' }
   ]
 
   return (
     <div className="landing-animated-shell relative overflow-hidden bg-transparent text-on-surface">
+      <div className="landing-premium-bg" aria-hidden="true">
+        <div className="landing-premium-gradient" />
+        <div className="landing-premium-grid" />
+        <div className="landing-premium-streams">
+          {streamBands.map((band) => (
+            <span
+              key={band.id}
+              className="landing-premium-stream"
+              style={{
+                top: `${band.top}%`,
+                animationDelay: band.delay,
+                animationDuration: band.duration,
+              }}
+            />
+          ))}
+        </div>
+        <div className="landing-premium-particles">
+          {backgroundParticles.map((particle) => (
+            <span
+              key={particle.id}
+              className="landing-premium-particle"
+              style={{
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+                animationDelay: particle.delay,
+                animationDuration: particle.duration,
+              }}
+            />
+          ))}
+        </div>
+        <div className="landing-premium-vignette" />
+      </div>
+
+      <div className="relative z-10">
 
       {/* ─── Hero Section ─── */}
-      <section className="relative overflow-hidden px-4 pb-32 pt-20 sm:px-8 sm:pt-32 lg:px-12">
-        {/* Subtle Background Glow */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
-          <div className="h-[800px] w-[800px] rounded-full bg-primary/30 blur-[140px] animate-pulse" />
+      <section className="relative overflow-hidden px-4 pb-24 pt-20 sm:px-8 sm:pt-28 lg:px-12">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 ai-signal-base" />
+          <div className="absolute inset-0 ai-signal-grid" />
+          <div className="ai-signal-orb ai-signal-orb-a" />
+          <div className="ai-signal-orb ai-signal-orb-b" />
+          <div className="ai-signal-orb ai-signal-orb-c" />
+          <div className="absolute inset-x-0 top-16 mx-auto h-[26rem] w-[92%] max-w-6xl rounded-[2.5rem] border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+            {signalLinks.map(([fromId, toId], index) => {
+              const from = nodeMap[fromId]
+              const to = nodeMap[toId]
+              if (!from || !to) return null
+
+              const dx = to.x - from.x
+              const dy = to.y - from.y
+              const length = Math.sqrt(dx * dx + dy * dy)
+              const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+
+              return (
+                <span
+                  key={`${fromId}-${toId}`}
+                  className="ai-signal-link"
+                  style={{
+                    left: `${from.x}%`,
+                    top: `${from.y}%`,
+                    width: `${length}%`,
+                    transform: `rotate(${angle}deg)`,
+                    animationDelay: `${index * 0.3}s`,
+                  }}
+                />
+              )
+            })}
+
+            {signalNodes.map((node) => (
+              <span
+                key={node.id}
+                className={`ai-signal-node ai-tone-${node.tone}`}
+                style={{ left: `${node.x}%`, top: `${node.y}%`, animationDelay: node.delay }}
+              >
+                <span className="ai-signal-pulse" />
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl text-center">
-          <div className="mb-8 inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 backdrop-blur-md animate-enter">
-            <span className="section-kicker">Workflow Console</span>
+          <div className="mb-8 inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-md animate-enter">
+            <span className="section-kicker">Realtime Risk Infrastructure</span>
           </div>
           <h1 className="landing-title animate-fade-in stagger-1 font-display text-5xl font-extrabold text-white sm:text-7xl lg:text-8xl">
-            Intake, score, and review <br />
-            <span className="text-gradient">transaction evidence</span>
+            AI-Powered Transaction <br />
+            <span className="text-gradient">Intelligence &amp; Risk Decisioning</span>
           </h1>
           <p className="body-muted mx-auto mt-10 max-w-3xl text-lg sm:text-2xl animate-fade-in stagger-2">
-            This console mirrors the backend flow: readiness checks, evidence ingestion, scoring, and case review.
+            Ingest, analyze, and act on financial signals with real-time fraud detection and trust scoring.
           </p>
           <div className="mt-12 flex flex-wrap justify-center gap-4 animate-fade-in stagger-3">
-            <Link to="/dashboard">
+            <Link to="/auth">
               <PremiumButton variant="primary" className="px-10 py-5 text-lg font-bold shadow-premium">
-                Open Console
+                🚀 Start Analysis
               </PremiumButton>
             </Link>
-            <a href="#how-it-works">
+            <Link to="/demo">
               <PremiumButton variant="secondary" className="px-10 py-5 text-lg font-bold bg-white/5 text-white backdrop-blur-xl border border-white/10">
-                See Workflow
+                🎥 Watch Demo
               </PremiumButton>
-            </a>
+            </Link>
+          </div>
+
+          <div className="mx-auto mt-16 flex max-w-4xl flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-surface-container-low/70 px-6 py-4 backdrop-blur-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-on-surface-variant">Trusted by financial operators</p>
+            {['Abyssinia Ops', 'Nile Switch', 'Ethio Ledger', 'Horizon Pay'].map((name) => (
+              <div key={name} className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">
+                {name}
+              </div>
+            ))}
+          </div>
+
+          <div className="mx-auto mt-8 grid max-w-5xl gap-4 text-left sm:grid-cols-3">
+            <SurfaceCard className="glass-surface border-white/10 p-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tertiary">⚡ &lt; 2s scoring latency</p>
+              <p className="mt-3 text-sm text-on-surface-variant">Rapid model responses for evidence triage and operational decisioning.</p>
+            </SurfaceCard>
+            <SurfaceCard className="glass-surface border-white/10 p-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-warning">📊 95% fraud detection accuracy</p>
+              <p className="mt-3 text-sm text-on-surface-variant">Signal fusion catches high-risk movement while reducing review noise.</p>
+            </SurfaceCard>
+            <SurfaceCard className="glass-surface border-white/10 p-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-info">🔐 Enterprise-grade security</p>
+              <p className="mt-3 text-sm text-on-surface-variant">Operator sessions, audit logs, and secure ingestion across every workflow.</p>
+            </SurfaceCard>
           </div>
 
           {/* INTERACTIVE PIPELINE */}
-              <div className="group relative mx-auto mt-32 max-w-5xl overflow-hidden rounded-[2.25rem] border border-white/10 bg-surface-container-low p-8 shadow-2xl sm:p-12 animate-slide-up stagger-4">
-             <div className="relative z-10">
-                <p className="section-kicker mb-12">The Workflow</p>
-                
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16 relative">
-                   <div className="hidden lg:block absolute top-[40px] left-[10%] right-[10%] h-0.5 pointer-events-none">
-                      <div className="h-full bg-gradient-to-r from-primary/10 via-primary to-primary/10 animate-shimmer" />
-                   </div>
+          <div className="group relative mx-auto mt-20 max-w-5xl overflow-hidden rounded-[2.25rem] border border-white/10 bg-surface-container-low p-8 shadow-2xl sm:p-12 animate-slide-up stagger-4">
+            <div className="relative z-10">
+              <p className="section-kicker mb-12">The Workflow</p>
 
-                   {steps.map((step, i) => (
-                      <button 
-                         key={i} 
-                         onClick={() => setActiveStep(i)}
-                         className={`flex flex-col items-center group transition-all duration-500 ${activeStep === i ? 'scale-110' : 'opacity-40 grayscale hover:opacity-100 hover:grayscale-0'}`}
-                      >
-                         <div className={`h-20 w-20 rounded-[2rem] flex items-center justify-center text-4xl mb-6 border-2 transition-all duration-500 ${activeStep === i ? 'bg-primary/20 border-primary shadow-[0_0_40px_rgba(99,102,241,0.3)]' : 'bg-white/5 border-white/10'}`}>
-                            {step.icon}
-                         </div>
-                         <p className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-500 ${activeStep === i ? 'text-primary' : 'text-on-surface-variant'}`}>{step.title}</p>
-                      </button>
-                   ))}
+              <div className="relative mb-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div className="pointer-events-none absolute left-[10%] right-[10%] top-[40px] hidden h-0.5 lg:block">
+                  <div className="h-full bg-gradient-to-r from-primary/10 via-primary to-primary/10 animate-shimmer" />
                 </div>
 
-                <div className="mx-auto max-w-2xl text-center bg-white/5 rounded-3xl p-10 border border-white/5 backdrop-blur-md animate-fade-in" key={activeStep}>
-                     <h3 className="mb-6 font-display text-3xl font-bold leading-tight text-white">{steps[activeStep].title}</h3>
-                     <p className="body-muted mb-8 text-xl">{steps[activeStep].desc}</p>
-                   <div className="flex justify-center gap-6">
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-tertiary bg-tertiary/10 px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
-                         Ready Check ✅
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest animate-pulse delay-75">
-                         Backend Aligned 🛡️
-                      </div>
-                   </div>
+                {steps.map((step, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveStep(i)}
+                    className={`group flex flex-col items-center transition-all duration-500 ${activeStep === i ? 'scale-110' : 'opacity-40 grayscale hover:opacity-100 hover:grayscale-0'}`}
+                  >
+                    <div className={`mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] border-2 text-4xl transition-all duration-500 ${activeStep === i ? 'border-primary bg-primary/20 shadow-[0_0_40px_rgba(99,102,241,0.3)]' : 'border-white/10 bg-white/5'}`}>
+                      {step.icon}
+                    </div>
+                    <p className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-500 ${activeStep === i ? 'text-primary' : 'text-on-surface-variant'}`}>{step.title}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mx-auto max-w-2xl rounded-3xl border border-white/5 bg-white/5 p-10 text-center backdrop-blur-md animate-fade-in" key={activeStep}>
+                <h3 className="mb-6 font-display text-3xl font-bold leading-tight text-white">{steps[activeStep].title}</h3>
+                <p className="body-muted mb-8 text-xl">{steps[activeStep].desc}</p>
+                <div className="flex justify-center gap-6">
+                  <div className="animate-pulse rounded-full bg-tertiary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-tertiary">
+                    Live Signals ✅
+                  </div>
+                  <div className="animate-pulse delay-75 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    Fraud Pulse 🛡️
+                  </div>
                 </div>
-             </div>
-             <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity" />
+              </div>
+            </div>
+            <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl opacity-20 transition-opacity group-hover:opacity-40" />
           </div>
         </div>
       </section>
@@ -181,6 +322,7 @@ function LandingPage() {
         </div>
         <div className="absolute inset-0 z-0 bg-primary/5 blur-[200px]" />
       </section>
+      </div>
     </div>
   )
 }

@@ -59,6 +59,32 @@ class OTPVerifySerializer(serializers.Serializer):
     purpose = serializers.ChoiceField(choices=OTPPurpose.choices, default=OTPPurpose.USER)
     name = serializers.CharField(max_length=120, required=False, allow_blank=True)
     age = serializers.IntegerField(required=False)
+    region = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    financial_institutions = serializers.ListField(
+        child=serializers.CharField(max_length=120),
+        required=False,
+        allow_empty=True,
+    )
+
+
+class PortalUserProfileSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=32, required=False, allow_blank=True)
+    external_user_key = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    name = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    age = serializers.IntegerField(required=False)
+    region = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    financial_institutions = serializers.ListField(
+        child=serializers.CharField(max_length=120),
+        required=False,
+        allow_empty=True,
+    )
+
+    def validate(self, attrs):
+        phone_number = (attrs.get('phone_number') or '').strip()
+        external_user_key = (attrs.get('external_user_key') or '').strip()
+        if not phone_number and not external_user_key:
+            raise serializers.ValidationError('phone_number or external_user_key is required.')
+        return attrs
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -66,7 +92,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'student_id', 'full_name', 'sex', 'age', 'signup_time', 'is_active']
+        fields = [
+            'id', 'username', 'email', 'student_id', 'full_name', 'sex', 'age',
+            'phone_number', 'city_region', 'financial_institutions',
+            'signup_time', 'is_active',
+        ]
 
     def get_full_name(self, obj):
         return obj.get_full_name() or f"{obj.first_name} {obj.last_name}".strip()
@@ -103,7 +133,8 @@ class TransactionUploadSerializer(serializers.Serializer):
     """Special serializer for handling image/SMS/PDF uploads"""
     file = serializers.FileField(required=False)
     raw_text = serializers.CharField(required=False)
-    source_type = serializers.ChoiceField(choices=['sms', 'screenshot', 'pdf', 'manual'])
+    source_type = serializers.ChoiceField(choices=['sms', 'screenshot', 'pdf', 'manual'], required=False)
+    type = serializers.ChoiceField(choices=['sms', 'screenshot', 'pdf', 'manual'], required=False, write_only=True)
     device_id = serializers.CharField(max_length=255)
     ip_address = serializers.IPAddressField()
     amount = serializers.DecimalField(max_digits=15, decimal_places=2, required=False)
@@ -113,6 +144,13 @@ class TransactionUploadSerializer(serializers.Serializer):
     external_user_key = serializers.CharField(required=False, allow_blank=True)
     owner_name = serializers.CharField(required=False, allow_blank=True)
     continue_on_gaps = serializers.BooleanField(required=False)
+
+    def validate(self, attrs):
+        source_type = attrs.get('source_type') or attrs.get('type')
+        if not source_type:
+            raise serializers.ValidationError({'source_type': 'This field is required.'})
+        attrs['source_type'] = source_type
+        return attrs
 
 
 class PredictionRequestSerializer(serializers.Serializer):

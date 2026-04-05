@@ -1,12 +1,13 @@
 import { NavLink } from 'react-router-dom'
+import NavIcon from './NavIcon'
 
 // User-only bottom nav — admin links are never rendered here
 const userLinks = [
-  { name: 'Home', icon: '🏠', path: '/portal/home' },
-  { name: 'Upload', icon: '📤', path: '/portal/upload' },
-  { name: 'Insights', icon: '📊', path: '/portal/insights' },
-  { name: 'Loans', icon: '🏦', path: '/portal/loan' },
-  { name: 'History', icon: '📁', path: '/portal/history' },
+  { name: 'Home', icon: 'home', path: '/portal/home' },
+  { name: 'Upload', icon: 'upload', path: '/portal/upload' },
+  { name: 'Insights', icon: 'insights', path: '/portal/insights' },
+  { name: 'Loans', icon: 'loan', path: '/portal/loan' },
+  { name: 'History', icon: 'history', path: '/portal/history' },
 ]
 
 function BottomNav() {
@@ -23,7 +24,9 @@ function BottomNav() {
               }`
             }
           >
-            <span className="text-2xl">{link.icon}</span>
+            <span className="grid h-6 w-6 place-items-center">
+              <NavIcon name={link.icon} className="h-5 w-5" />
+            </span>
             <span className="text-[10px] font-black uppercase tracking-widest italic">{link.name}</span>
           </NavLink>
         ))}

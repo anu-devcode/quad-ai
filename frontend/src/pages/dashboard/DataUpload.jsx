@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SurfaceCard, PremiumButton, TokenPill } from '../../components/ui'
+import AppIcon from '../../components/AppIcon'
 import { useAuth } from '../../context/AuthContext'
 import { useVerification } from '../../context/VerificationContext'
 import { orchestrateTransaction } from '../../services/campusApi'
@@ -8,25 +9,25 @@ const sourceOptions = [
    {
       key: 'screenshot',
       title: 'Mobile Wallet Screenshot',
-      icon: '📱',
+      icon: 'camera',
       desc: 'Upload screenshots from wallet apps like M-Pesa, Telebirr, or CBE.',
    },
    {
       key: 'sms',
       title: 'Operator SMS History',
-      icon: '💬',
+      icon: 'message',
       desc: 'Paste SMS transaction text from your phone.',
    },
    {
       key: 'pdf',
       title: 'Financial Statements',
-      icon: '🏦',
+      icon: 'institution',
       desc: 'Upload PDF bank or wallet statements.',
    },
    {
       key: 'manual',
       title: 'Manual Input',
-      icon: '🧾',
+      icon: 'note',
       desc: 'Type in amount and date yourself.',
    },
 ]
@@ -173,7 +174,9 @@ function DataUpload() {
          <div className="grid gap-8 md:grid-cols-2">
             <label className="group relative block aspect-[16/10] rounded-[3rem] bg-surface-container-low border-2 border-dashed border-white/10 hover:border-primary transition-all cursor-pointer overflow-hidden p-12 flex flex-col items-center justify-center text-center">
                <input type="file" className="hidden" onChange={handleFile} />
-               <div className="text-6xl mb-8 group-hover:scale-110 transition-transform group-hover:rotate-6">📄</div>
+               <div className="mb-8 grid h-20 w-20 place-items-center rounded-3xl border border-white/10 bg-white/5 text-on-surface group-hover:scale-110 transition-transform group-hover:rotate-6">
+                  <AppIcon name="document" className="h-10 w-10" />
+               </div>
                <p className="text-xl font-black text-white uppercase tracking-widest italic mb-2">Add Files</p>
                <p className="text-xs text-on-surface-variant italic">Screenshots, PDFs, or SMS messages</p>
                {fileName && <p className="mt-3 text-[10px] text-primary font-bold uppercase tracking-widest">{fileName}</p>}
@@ -184,7 +187,9 @@ function DataUpload() {
                {sourceOptions.map((item) => (
                   <SurfaceCard key={item.key} className={`p-6 border-white/5 transition-colors group cursor-pointer ${sourceType === item.key ? 'bg-primary/10 border-primary/30' : 'bg-white/5 hover:bg-white/10'}`} onClick={() => setSourceType(item.key)}>
                      <div className="flex items-center gap-6">
-                        <div className="text-4xl grayscale group-hover:grayscale-0 transition-all">{item.icon}</div>
+                        <div className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5 text-on-surface transition-all">
+                           <AppIcon name={item.icon} className="h-6 w-6" />
+                        </div>
                         <div>
                            <h4 className="text-sm font-black text-white uppercase italic tracking-widest">{item.title}</h4>
                            <p className="text-[10px] text-on-surface-variant italic mt-1 font-light">{item.desc}</p>
@@ -277,7 +282,10 @@ function DataUpload() {
                                  />
                               </td>
                               <td className="px-8 py-6">
-                                 <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black uppercase text-primary italic">Looks Good ✅</span>
+                                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black uppercase text-primary italic">
+                                    <AppIcon name="check" className="h-3 w-3" />
+                                    <span>Looks Good</span>
+                                 </span>
                               </td>
                            </tr>
                         ))}

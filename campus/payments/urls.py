@@ -4,6 +4,7 @@ from .views import (
     FraudFeedbackViewSet,
     LoanRequestViewSet,
     ModelMonitoringAPIView,
+    PortalUserProfileAPIView,
     NotificationViewSet,
     OTPRequestAPIView,
     OTPVerifyAPIView,
@@ -26,6 +27,7 @@ router.register(r'fraud/feedback', FraudFeedbackViewSet, basename='fraud-feedbac
 urlpatterns = [
     path('auth/otp/request/', OTPRequestAPIView.as_view(), name='otp-request'),
     path('auth/otp/verify/', OTPVerifyAPIView.as_view(), name='otp-verify'),
+    path('auth/profile/', PortalUserProfileAPIView.as_view(), name='portal-user-profile'),
     path('predict/', PredictAPIView.as_view(), name='predict'),
     path('verification/report/', ProjectVerificationAPIView.as_view(), name='project-verification-report'),
     path('admin/users/', UserGovernanceAPIView.as_view(), name='admin-users'),

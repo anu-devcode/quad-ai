@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
+
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "campus.settings")
+django.setup()
 
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -47,6 +53,10 @@ def run():
     )
 
     now_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    sms_mock_text = (
+        "CBE ALERT: Purchase value: 3250.75 ETB on 2026-04-05 10:30:00. "
+        "Payment sent to MERCHANT-001. user_id=111 device_id=sms-device-01 ip_address=127.0.0.1"
+    )
 
     results = []
 
@@ -73,7 +83,7 @@ def run():
     record(results, "predict_proxy", "POST", "/api/predict/", resp.status_code, {200, 503}, body_preview(resp))
 
     # 3) Transactions list + dashboard
-    resp = client.get("/api/transactions/")
+    resp = client.get("/api/transactions/", data={"user_id": user.id})
     record(results, "transactions_list", "GET", "/api/transactions/", resp.status_code, {200}, body_preview(resp))
 
     resp = client.get("/api/transactions/dashboard-stats/")
@@ -110,8 +120,33 @@ def run():
     resp = client.post("/api/transactions/orchestrate/", data=orch_payload, format="json")
     record(results, "transactions_orchestrate", "POST", "/api/transactions/orchestrate/", resp.status_code, {200, 201}, body_preview(resp))
 
+    # 4b) SMS ingestion + evaluation using realistic mock text
+    sms_payload = {
+        "source_type": "sms",
+        "raw_text": sms_mock_text,
+        "device_id": "device-api-validation-sms-01",
+        "ip_address": "127.0.0.1",
+        "external_user_key": "+251911777777",
+        "owner_name": "SMS Validation User",
+        "age": user.age or 20,
+    }
+    resp = client.post("/api/transactions/ingest/", data=sms_payload, format="json")
+    record(results, "transactions_ingest_sms", "POST", "/api/transactions/ingest/", resp.status_code, {201}, body_preview(resp))
+
+    sms_upload_payload = {
+        "type": "sms",
+        "raw_text": sms_mock_text,
+        "device_id": "device-api-validation-sms-02",
+        "ip_address": "127.0.0.1",
+        "external_user_key": "+251911888888",
+        "owner_name": "SMS Upload Validation User",
+        "age": user.age or 20,
+    }
+    resp = client.post("/api/transactions/upload/", data=sms_upload_payload, format="json")
+    record(results, "transactions_upload_sms", "POST", "/api/transactions/upload/", resp.status_code, {201}, body_preview(resp))
+
     if transaction_id:
-        resp = client.get(f"/api/transactions/{transaction_id}/")
+        resp = client.get(f"/api/transactions/{transaction_id}/", data={"user_id": user.id})
         record(results, "transactions_detail", "GET", f"/api/transactions/{transaction_id}/", resp.status_code, {200}, body_preview(resp))
 
     # 5) Loan workflow
@@ -132,23 +167,35 @@ def run():
     except Exception:
         loan_id = None
 
-    resp = client.get("/api/loans/requests/")
+    resp = client.get("/api/loans/requests/", data={"user_id": user.id})
     record(results, "loan_list", "GET", "/api/loans/requests/", resp.status_code, {200}, body_preview(resp))
 
     if loan_id:
-        resp = client.get(f"/api/loans/requests/{loan_id}/")
+        resp = client.get(f"/api/loans/requests/{loan_id}/", data={"user_id": user.id})
         record(results, "loan_detail", "GET", f"/api/loans/requests/{loan_id}/", resp.status_code, {200}, body_preview(resp))
 
-        resp = client.get(f"/api/loans/requests/{loan_id}/status/")
+        resp = client.get(f"/api/loans/requests/{loan_id}/status/", data={"user_id": user.id})
         record(results, "loan_status", "GET", f"/api/loans/requests/{loan_id}/status/", resp.status_code, {200}, body_preview(resp))
 
-        resp = client.post(f"/api/loans/requests/{loan_id}/evaluate/", data={"ip_address": "127.0.0.1"}, format="json")
+        resp = client.post(
+            f"/api/loans/requests/{loan_id}/evaluate/",
+            data={"ip_address": "127.0.0.1", "user_id": user.id},
+            format="json",
+        )
         record(results, "loan_evaluate", "POST", f"/api/loans/requests/{loan_id}/evaluate/", resp.status_code, {200}, body_preview(resp))
 
-        resp = client.post(f"/api/loans/requests/{loan_id}/approve/", data={"note": "approved in validation run"}, format="json")
+        resp = client.post(
+            f"/api/loans/requests/{loan_id}/approve/",
+            data={"note": "approved in validation run", "user_id": user.id},
+            format="json",
+        )
         record(results, "loan_approve", "POST", f"/api/loans/requests/{loan_id}/approve/", resp.status_code, {200}, body_preview(resp))
 
-        resp = client.post(f"/api/loans/requests/{loan_id}/reject/", data={"note": "should fail after approval"}, format="json")
+        resp = client.post(
+            f"/api/loans/requests/{loan_id}/reject/",
+            data={"note": "should fail after approval", "user_id": user.id},
+            format="json",
+        )
         record(results, "loan_reject_after_approve", "POST", f"/api/loans/requests/{loan_id}/reject/", resp.status_code, {400}, body_preview(resp))
 
     passed = sum(1 for x in results if x["ok"])

@@ -1,5 +1,15 @@
 # Fraud Detection Model
 
+<p align="center">
+   <a href="Pitch_Deck.pptx">
+      <img src="https://img.shields.io/badge/PITCH%20DECK-OPEN%20PPTX-D24726?style=for-the-badge&logo=microsoftpowerpoint&logoColor=white" alt="Open Pitch Deck" />
+   </a>
+</p>
+
+> Quick access: [Open the Pitch Deck (PPTX)](Pitch_Deck.pptx)
+
+Place your latest pitch file at `Pitch_Deck.pptx` in the repository root so this link always works.
+
 ## Project Overview
 This project aims to detect fraudulent transactions using machine learning techniques. The analysis combines multiple datasets including transaction data, IP address mappings, and credit card fraud records to build a comprehensive fraud detection system.
 

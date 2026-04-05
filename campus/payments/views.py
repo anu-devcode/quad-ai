@@ -47,6 +47,7 @@ from .serializers import (
     LoanStatusSerializer,
     OTPRequestSerializer,
     OTPVerifySerializer,
+    PortalUserProfileSerializer,
     PredictionRequestSerializer,
     RiskAlertSerializer,
     SystemNotificationSerializer,
@@ -101,6 +102,10 @@ class PortalUserResolutionMixin:
         return re.sub(r'[^a-zA-Z0-9]', '', str(value)).lower()[:48]
 
     @staticmethod
+    def _normalize_phone(value):
+        return re.sub(r'[\s\-().]', '', str(value or '')).strip()
+
+    @staticmethod
     def _build_portal_username(normalized_key):
         return f'portal_{normalized_key}'[:150]
 
@@ -126,20 +131,86 @@ class PortalUserResolutionMixin:
             return None
         return parsed if parsed > 0 else None
 
+    @staticmethod
+    def _parse_institutions(value):
+        if value in (None, ''):
+            return []
+        if isinstance(value, str):
+            candidates = [item.strip() for item in value.split(',')]
+        elif isinstance(value, (list, tuple, set)):
+            candidates = [str(item).strip() for item in value]
+        else:
+            return []
+
+        normalized = []
+        for item in candidates:
+            if not item:
+                continue
+            trimmed = item[:120]
+            if trimmed not in normalized:
+                normalized.append(trimmed)
+        return normalized
+
     def _find_portal_user(self, external_user_key):
+        normalized_phone = self._normalize_phone(external_user_key)
+        if normalized_phone:
+            by_phone = User.objects.filter(phone_number=normalized_phone).first()
+            if by_phone is not None:
+                return by_phone
+
         normalized = self._normalize_external_user_key(external_user_key)
         if not normalized:
             return None
         username = self._build_portal_username(normalized)
         return User.objects.filter(username=username).first()
 
-    def _get_or_create_portal_user(self, external_user_key, display_name='', age=None):
+    def _get_or_create_portal_user(
+        self,
+        external_user_key,
+        display_name='',
+        age=None,
+        phone_number=None,
+        region='',
+        institutions=None,
+    ):
         normalized = self._normalize_external_user_key(external_user_key)
+        normalized_phone = self._normalize_phone(phone_number or external_user_key)
         if not normalized:
             return None
 
         existing_user = self._find_portal_user(normalized)
         if existing_user is not None:
+            updates = []
+
+            first_name, last_name = self._split_name(display_name)
+            if display_name and first_name != existing_user.first_name:
+                existing_user.first_name = first_name
+                updates.append('first_name')
+            if display_name and last_name != existing_user.last_name:
+                existing_user.last_name = last_name
+                updates.append('last_name')
+
+            parsed_age = self._parse_age(age)
+            if parsed_age is not None and parsed_age != existing_user.age:
+                existing_user.age = parsed_age
+                updates.append('age')
+
+            if normalized_phone and existing_user.phone_number != normalized_phone:
+                existing_user.phone_number = normalized_phone
+                updates.append('phone_number')
+
+            cleaned_region = str(region or '').strip()
+            if cleaned_region and cleaned_region != existing_user.city_region:
+                existing_user.city_region = cleaned_region[:120]
+                updates.append('city_region')
+
+            cleaned_institutions = self._parse_institutions(institutions)
+            if cleaned_institutions and cleaned_institutions != (existing_user.financial_institutions or []):
+                existing_user.financial_institutions = cleaned_institutions
+                updates.append('financial_institutions')
+
+            if updates:
+                existing_user.save(update_fields=updates)
             return existing_user
 
         first_name, last_name = self._split_name(display_name)
@@ -158,6 +229,9 @@ class PortalUserResolutionMixin:
             age=self._parse_age(age),
             first_name=first_name,
             last_name=last_name,
+            phone_number=normalized_phone or None,
+            city_region=str(region or '').strip()[:120],
+            financial_institutions=self._parse_institutions(institutions),
             is_active=True,
         )
         user.set_unusable_password()
@@ -190,6 +264,9 @@ class PortalUserResolutionMixin:
                 external_user_key,
                 display_name=request.data.get('owner_name') or request.data.get('name') or '',
                 age=request.data.get('age'),
+                phone_number=request.data.get('phone') or request.data.get('phone_number') or external_user_key,
+                region=request.data.get('region') or '',
+                institutions=request.data.get('financial_institutions') or request.data.get('institutions') or [],
             )
 
         return self._find_portal_user(external_user_key)
@@ -304,14 +381,63 @@ class OTPVerifyAPIView(PortalUserResolutionMixin, APIView):
         }
 
         if purpose == OTPPurpose.USER:
+            existing_user = self._find_portal_user(phone_number)
             user = self._get_or_create_portal_user(
                 phone_number,
-                display_name=request.data.get('name') or '',
-                age=request.data.get('age'),
+                display_name=serializer.validated_data.get('name') or '',
+                age=serializer.validated_data.get('age'),
+                phone_number=phone_number,
+                region=serializer.validated_data.get('region') or '',
+                institutions=serializer.validated_data.get('financial_institutions') or [],
             )
             response_data['user_id'] = user.id if user else None
+            if user is not None:
+                profile_complete = bool(
+                    user.get_full_name().strip()
+                    and str(user.city_region or '').strip()
+                    and len(user.financial_institutions or []) > 0
+                )
+                response_data['existing_user'] = existing_user is not None
+                response_data['profile_complete'] = profile_complete
+                response_data['onboarding_required'] = not profile_complete
+                response_data['user'] = UserSerializer(user).data
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class PortalUserProfileAPIView(PortalUserResolutionMixin, APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PortalUserProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        payload = serializer.validated_data
+        external_user_key = payload.get('external_user_key') or payload.get('phone_number')
+        user = self._get_or_create_portal_user(
+            external_user_key,
+            display_name=payload.get('name') or '',
+            age=payload.get('age'),
+            phone_number=payload.get('phone_number') or payload.get('external_user_key'),
+            region=payload.get('region') or '',
+            institutions=payload.get('financial_institutions') or [],
+        )
+
+        if user is None:
+            return Response(
+                {'detail': 'Unable to resolve or create user profile.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                'detail': 'User profile saved.',
+                'user_id': user.id,
+                'user': UserSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class PredictAPIView(APIView):
@@ -881,6 +1007,32 @@ class TransactionViewSet(PortalUserResolutionMixin, viewsets.ModelViewSet):
     def ingest(self, request):
         """Unified endpoint for transaction ingestion from multiple sources."""
         return self._ingest_and_score(request)
+
+    @action(detail=False, methods=['post'], url_path='upload')
+    def upload(self, request):
+        """Upload endpoint alias used by onboarding evidence ingestion."""
+        ingest_response = self._ingest_and_score(request)
+        if ingest_response.status_code >= status.HTTP_400_BAD_REQUEST:
+            return ingest_response
+
+        result = ingest_response.data if isinstance(ingest_response.data, dict) else {}
+        fraud = result.get('fraud_assessment') or {}
+
+        return Response(
+            {
+                'parsed_data': {
+                    'transaction_id': result.get('id'),
+                    'source': result.get('data_source'),
+                    'amount': result.get('amount'),
+                    'purchase_time': result.get('purchase_time'),
+                    'status': result.get('status'),
+                },
+                'fraud_score': fraud.get('fraud_probability'),
+                'risk_level': fraud.get('risk_level'),
+                'raw_result': result,
+            },
+            status=ingest_response.status_code,
+        )
 
     @action(detail=False, methods=['post'], url_path='orchestrate')
     def orchestrate(self, request):

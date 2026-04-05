@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
    * Phone number must NOT be an admin number.
    */
   const loginUser = useCallback(
-    (phone, profile = {}) => {
+    (phone, profile = {}, routeState = {}) => {
       if (isAdminPhone(phone)) {
         // Admin trying to use user auth — reject silently and redirect to admin login
         navigate('/admin/auth', { replace: true })
@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
         phone,
         role: 'user',
       })
-      navigate('/portal/home', { replace: true })
+      navigate('/portal/home', { replace: true, state: routeState })
     },
     [navigate]
   )

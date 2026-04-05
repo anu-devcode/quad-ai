@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from '../components/dashboard/Sidebar'
 import BottomNav from '../components/dashboard/BottomNav'
+import AppIcon from '../components/AppIcon'
 
 const pageTitles = {
   '/portal/home': 'Overview',
@@ -103,7 +104,7 @@ function DashboardLayout() {
                 className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-error/10 hover:text-error transition-all"
                 title="Logout"
               >
-                🚪
+                <AppIcon name="logout" className="h-4 w-4" />
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { SurfaceCard } from '../../components/ui'
+import AppIcon from '../../components/AppIcon'
 import {
    getNotifications,
    getRiskAlerts,
@@ -222,7 +223,9 @@ function TrustStatus() {
                  
                  {pagedAlerts.length === 0 && (
                     <div className="flex flex-col items-center justify-center p-24 opacity-30 text-center italic">
-                       <div className="text-7xl mb-10 animate-bounce">🛡️</div>
+                       <div className="mb-10 inline-flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/5 animate-bounce">
+                          <AppIcon name="safety" className="h-10 w-10" />
+                       </div>
                        <p className="text-2xl font-black text-white italic tracking-tighter uppercase underline decoration-primary/20">Everything Looks Good</p>
                        <p className="text-xs text-on-surface-variant mt-4 font-light">No open alerts right now.</p>
                     </div>
@@ -257,7 +260,9 @@ function TrustStatus() {
         {/* PROTECTION HUD SIDEBAR */}
         <div className="lg:col-span-4 space-y-12">
            <SurfaceCard className="glass-surface p-12 h-full border-white/5 bg-surface-container-high/40 text-center relative overflow-hidden group">
-              <div className="text-6xl mb-10 group-hover:scale-110 transition-transform duration-1000 decoration-primary/20 underline opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100">🛡️</div>
+              <div className="mb-10 inline-flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/5 text-on-surface transition-transform duration-1000 opacity-40 grayscale group-hover:scale-110 group-hover:grayscale-0 group-hover:opacity-100">
+                 <AppIcon name="safety" className="h-10 w-10" />
+              </div>
               <h2 className="font-display text-xl font-black text-white italic uppercase underline decoration-primary/20 mb-12 tracking-tighter">Account Safety Settings</h2>
               
               <div className="space-y-8 text-left relative z-10">

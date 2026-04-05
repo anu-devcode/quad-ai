@@ -1,14 +1,15 @@
 import { Navigate, Outlet, useLocation, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import AppIcon from '../components/AppIcon'
 
 const adminNavLinks = [
-  { name: 'Overview', icon: '🧭', path: '/admin/overview' },
-  { name: 'Loans', icon: '💳', path: '/admin/loans' },
-  { name: 'Evidence', icon: '📥', path: '/admin/evidence' },
-  { name: 'Users', icon: '👥', path: '/admin/users' },
-  { name: 'Reports', icon: '📊', path: '/admin/analytics' },
-  { name: 'Settings', icon: '⚙️', path: '/admin/settings' },
+  { name: 'Overview', icon: 'compass', path: '/admin/overview' },
+  { name: 'Loans', icon: 'card', path: '/admin/loans' },
+  { name: 'Evidence', icon: 'inbox', path: '/admin/evidence' },
+  { name: 'Users', icon: 'users', path: '/admin/users' },
+  { name: 'Reports', icon: 'insights', path: '/admin/analytics' },
+  { name: 'Settings', icon: 'settings', path: '/admin/settings' },
 ]
 
 const pageTitles = {
@@ -105,8 +106,8 @@ function AdminLayout() {
                     : 'text-on-surface-variant hover:bg-white/5 hover:text-white'
                 }`}
               >
-                <span className="text-xl group-hover:scale-110 transition-transform">
-                  {link.icon}
+                <span className="grid h-6 w-6 place-items-center group-hover:scale-110 transition-transform">
+                  <AppIcon name={link.icon} className="h-5 w-5" />
                 </span>
                 <span className="text-xs font-black uppercase tracking-widest italic">
                   {link.name}
@@ -147,7 +148,7 @@ function AdminLayout() {
               className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-lg text-on-surface lg:hidden"
               aria-label="Open admin navigation"
             >
-              ☰
+                <AppIcon name="menu" className="h-5 w-5" />
             </button>
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-error italic opacity-60">
@@ -172,7 +173,7 @@ function AdminLayout() {
                 className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-error/10 border border-error/20 flex items-center justify-center hover:bg-error/20 transition-all text-error"
                 title="Log out"
               >
-                🚪
+                <AppIcon name="logout" className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -206,7 +207,7 @@ function AdminLayout() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Close menu"
               >
-                ✕
+                <AppIcon name="close" className="h-5 w-5" />
               </button>
             </div>
             <div className="mt-4 grid gap-2">
@@ -220,7 +221,9 @@ function AdminLayout() {
                     className={`flex items-center justify-between rounded-2xl px-4 py-3 ${isActive ? 'bg-error/20 text-white ring-1 ring-error/30' : 'bg-white/5 text-on-surface-variant'}`}
                   >
                     <span className="flex items-center gap-3">
-                      <span className="text-lg">{link.icon}</span>
+                      <span className="grid h-5 w-5 place-items-center">
+                        <AppIcon name={link.icon} className="h-4 w-4" />
+                      </span>
                       <span className="text-xs font-black uppercase tracking-[0.12em] italic">{link.name}</span>
                     </span>
                     <span className="text-sm opacity-60">→</span>
@@ -245,7 +248,9 @@ function AdminLayout() {
                   isActive ? 'text-error scale-110' : 'text-on-surface-variant'
                 }`}
               >
-                <span className="text-xl">{link.icon}</span>
+                <span className="grid h-6 w-6 place-items-center">
+                  <AppIcon name={link.icon} className="h-5 w-5" />
+                </span>
                 <span className="text-[9px] text-center font-black uppercase tracking-[0.12em] italic leading-tight">
                   {link.name}
                 </span>
@@ -257,7 +262,9 @@ function AdminLayout() {
             onClick={() => setIsMobileMenuOpen(true)}
             className="flex flex-col items-center gap-2 rounded-xl px-3 py-2 text-on-surface-variant transition-all"
           >
-            <span className="text-xl">⋯</span>
+            <span className="grid h-6 w-6 place-items-center">
+              <AppIcon name="more" className="h-5 w-5" />
+            </span>
             <span className="text-[9px] text-center font-black uppercase tracking-[0.12em] italic leading-tight">More</span>
           </button>
         </div>

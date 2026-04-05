@@ -1,15 +1,25 @@
 import { useAuth } from '../../context/AuthContext'
 import { SurfaceCard } from '../../components/ui'
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import AppIcon from '../../components/AppIcon'
 import { getDashboardStats, getNotifications, getTransactions, getTrustProfiles, toList } from '../../services/campusApi'
 
 function DashboardHome() {
   const { user } = useAuth()
+  const location = useLocation()
    const [stats, setStats] = useState(null)
    const [transactions, setTransactions] = useState([])
    const [trustProfile, setTrustProfile] = useState(null)
    const [notifications, setNotifications] = useState([])
    const [error, setError] = useState('')
+   const [firstInsight, setFirstInsight] = useState(null)
+
+   useEffect(() => {
+      if (location.state?.firstInsight) {
+         setFirstInsight(location.state.firstInsight)
+      }
+   }, [location.state])
 
    useEffect(() => {
       let mounted = true
@@ -99,6 +109,31 @@ function DashboardHome() {
         </div>
       </header>
 
+         {firstInsight ? (
+            <SurfaceCard className="glass-surface border border-primary/20 bg-primary/10 p-6 sm:p-8">
+               <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-tertiary">
+                  <AppIcon name="target" className="h-3.5 w-3.5" />
+                  <span>{firstInsight.message || 'First Insight Ready'}</span>
+               </div>
+               <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">Transaction Risk</p>
+                     <p className={`mt-2 text-lg font-black uppercase ${String(firstInsight.riskLevel).toLowerCase() === 'high' ? 'text-risk' : String(firstInsight.riskLevel).toLowerCase() === 'medium' ? 'text-warning' : 'text-safe'}`}>
+                        {firstInsight.riskLevel}
+                     </p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">Fraud Probability</p>
+                     <p className="mt-2 text-lg font-black text-error">{firstInsight.fraudProbability}%</p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">Recommendation</p>
+                     <p className="mt-2 text-lg font-black text-warning">{firstInsight.recommendation}</p>
+                  </div>
+               </div>
+            </SurfaceCard>
+         ) : null}
+
       <div className="grid gap-8 lg:grid-cols-12">
         {/* Score Gauge Section */}
         <div className="lg:col-span-4 lg:row-span-2">
@@ -133,7 +168,10 @@ function DashboardHome() {
                <p className="text-[10px] uppercase font-black tracking-widest text-on-surface-variant mb-6 italic opacity-50 underline decoration-primary/20">Data Quality</p>
                <div className="flex items-end gap-3 mb-6">
                   <span className="text-5xl font-black text-white italic tracking-tighter">{confidence}%</span>
-                  <span className="text-xs text-tertiary mb-2 font-black italic uppercase tracking-widest">Looks Good ✅</span>
+                  <span className="mb-2 inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-tertiary italic">
+                     <AppIcon name="check" className="h-3.5 w-3.5" />
+                     <span>Looks Good</span>
+                  </span>
                </div>
                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                   <div className="h-full bg-tertiary transition-all duration-1000" style={{width: `${confidence}%`}} />
@@ -145,7 +183,10 @@ function DashboardHome() {
                <p className="text-[10px] uppercase font-black tracking-widest text-on-surface-variant mb-6 italic opacity-50 underline decoration-primary/20">Risk Level</p>
                <div className="flex items-end gap-3 mb-6">
                   <span className={`text-5xl font-black italic tracking-tighter ${riskLevel === 'Minimal' ? 'text-tertiary' : 'text-error'}`}>{riskLevel}</span>
-                  <span className="text-xs text-on-surface-variant mb-2 font-black italic uppercase tracking-widest">Current Status 🛡️</span>
+                  <span className="mb-2 inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-on-surface-variant italic">
+                     <AppIcon name="safety" className="h-3.5 w-3.5" />
+                     <span>Current Status</span>
+                  </span>
                </div>
                <div className="flex gap-2 h-4 items-end">
                   {[15, 30, 20, 45, 12, 18, 25, 40, 10, 35].map((h, i) => (

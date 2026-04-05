@@ -53,6 +53,13 @@ export function verifyOtp(payload) {
   })
 }
 
+export function saveUserProfile(payload) {
+  return request('/auth/profile/', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 export function getDashboardStats(params = {}) {
   return request(withQuery('/transactions/dashboard-stats/', params))
 }
@@ -76,6 +83,26 @@ export function orchestrateTransaction(payload) {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export async function uploadTransactionEvidence(payload) {
+  try {
+    if (payload instanceof FormData) {
+      return await request('/transactions/upload/', {
+        method: 'POST',
+        body: payload,
+      })
+    }
+
+    return await request('/transactions/upload/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  } catch (error) {
+    if (error?.status !== 404) throw error
+
+    return orchestrateTransaction(payload)
+  }
 }
 
 export function createLoanRequest(payload) {

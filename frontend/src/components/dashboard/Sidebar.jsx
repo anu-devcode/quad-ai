@@ -1,15 +1,16 @@
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import NavIcon from './NavIcon'
 
 // User-only nav links — no admin paths ever rendered here
 const userLinks = [
-  { name: 'Home', icon: '🏠', path: '/portal/home' },
-  { name: 'Upload Data', icon: '📤', path: '/portal/upload' },
-  { name: 'Spending Insights', icon: '📊', path: '/portal/insights' },
-  { name: 'Credit Score', icon: '🧠', path: '/portal/profile' },
-  { name: 'Safety Alerts', icon: '🛡️', path: '/portal/status' },
-  { name: 'History', icon: '📁', path: '/portal/history' },
-  { name: 'Loan Requests', icon: '🏦', path: '/portal/loan' },
+  { name: 'Home', icon: 'home', path: '/portal/home' },
+  { name: 'Upload Data', icon: 'upload', path: '/portal/upload' },
+  { name: 'Spending Insights', icon: 'insights', path: '/portal/insights' },
+  { name: 'Credit Score', icon: 'credit', path: '/portal/profile' },
+  { name: 'Safety Alerts', icon: 'safety', path: '/portal/status' },
+  { name: 'History', icon: 'history', path: '/portal/history' },
+  { name: 'Loan Requests', icon: 'loan', path: '/portal/loan' },
 ]
 
 function Sidebar() {
@@ -49,7 +50,9 @@ function Sidebar() {
               }`
             }
           >
-            <span className="text-xl group-hover:scale-110 transition-transform">{link.icon}</span>
+            <span className="grid h-6 w-6 place-items-center transition-transform group-hover:scale-110">
+              <NavIcon name={link.icon} className="h-5 w-5" />
+            </span>
             <span className="text-xs font-black uppercase tracking-widest italic">{link.name}</span>
           </NavLink>
         ))}

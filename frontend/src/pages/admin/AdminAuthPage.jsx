@@ -1,11 +1,13 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import AppIcon from '../../components/AppIcon'
 import { useAuth, isAdminPhone } from '../../context/AuthContext'
 import { requestOtp, verifyOtp } from '../../services/campusApi'
 
 // ─── COMPONENT ──────────────────────────────────────────────────────────────
 function AdminAuthPage() {
   const { isAdmin, isAuthenticated, loginAdmin } = useAuth()
+  const location = useLocation()
 
   const [step, setStep] = useState('phone') // 'phone' | 'otp' | 'rejected'
   const [phone, setPhone] = useState('')
@@ -13,6 +15,12 @@ function AdminAuthPage() {
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', ''])
   const [otpError, setOtpError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const seededPhone = location.state?.phone
+    if (!seededPhone || typeof seededPhone !== 'string') return
+    setPhone(seededPhone.replace(/[\s\-().]/g, ''))
+  }, [location.state])
 
   // ── If already logged in as admin, redirect immediately ──────────────────
   if (isAuthenticated && isAdmin) {
@@ -167,7 +175,10 @@ function AdminAuthPage() {
             </form>
 
             <p className="mt-8 text-center text-[10px] text-on-surface-variant font-bold italic opacity-40 uppercase tracking-widest">
-              🔒 Admin Credentials Required — No Public Registration
+              <span className="inline-flex items-center gap-2">
+                <AppIcon name="lock" className="h-3.5 w-3.5" />
+                <span>Admin Credentials Required - No Public Registration</span>
+              </span>
             </p>
           </div>
         )}
@@ -231,7 +242,9 @@ function AdminAuthPage() {
         {/* ─── REJECTED STATE ─── */}
         {step === 'rejected' && (
           <div className="animate-enter bg-error/10 border border-error/30 rounded-3xl p-10 backdrop-blur-xl shadow-premium text-center">
-            <div className="text-5xl mb-6">🚫</div>
+            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-error/30 bg-error/10 text-error">
+              <AppIcon name="ban" className="h-7 w-7" />
+            </div>
             <p className="text-[10px] font-black uppercase tracking-[0.35em] text-error mb-4 italic">
               [ Access Denied ]
             </p>
