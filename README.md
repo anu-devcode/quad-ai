@@ -125,6 +125,16 @@ Our latest progress includes both Task 2a and Task 2b requirements:
 3. Containerization for deployment
 4. Continuous integration and monitoring
 
+## Deployment
+The production deployment files are now included in the repository:
+
+- `docker-compose.coolify.yml` for Coolify on a DigitalOcean VPS
+- `Dockerfile.django` for the Django API
+- `Dockerfile.fastapi` for the fraud model service
+- `Dockerfile.frontend` for the public React SPA
+
+See `DOCKER.md` for the full environment and service wiring.
+
 ## Contributors
 - Mohammed Sultan
 
