@@ -24,4 +24,4 @@ RUN sed -i 's/\r$//' /app/docker/entrypoint.django.sh \
 EXPOSE 8000
 
 ENTRYPOINT ["/app/docker/entrypoint.django.sh"]
-CMD ["gunicorn", "campus.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+CMD ["gunicorn", "--chdir", "campus", "campus.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
