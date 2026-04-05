@@ -206,6 +206,11 @@ def get_operational_risk_probability(req: PredictionRequest, fraud_prob: float) 
 async def root():
     return {"status": "online", "model": "Random Forest Fraud Detector"}
 
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "model_loaded": model is not None and scaler is not None}
+
 @app.post("/predict", response_model=PredictionOutput)
 async def predict(request: PredictionRequest):
     try:
@@ -240,4 +245,4 @@ async def predict(request: PredictionRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host=os.getenv("HOST", "0.0.0.0"), port=int(os.getenv("PORT", "8001")))

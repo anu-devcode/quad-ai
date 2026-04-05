@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
+    HealthAPIView,
     FraudFeedbackViewSet,
     LoanRequestViewSet,
     ModelMonitoringAPIView,
@@ -24,6 +25,7 @@ router.register(r'risk/alerts', RiskAlertViewSet, basename='risk-alert')
 router.register(r'fraud/feedback', FraudFeedbackViewSet, basename='fraud-feedback')
 
 urlpatterns = [
+    path('health/', HealthAPIView.as_view(), name='health'),
     path('auth/otp/request/', OTPRequestAPIView.as_view(), name='otp-request'),
     path('auth/otp/verify/', OTPVerifyAPIView.as_view(), name='otp-verify'),
     path('predict/', PredictAPIView.as_view(), name='predict'),

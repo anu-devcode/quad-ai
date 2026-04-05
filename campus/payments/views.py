@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django.db.models import Avg, Count, Max, Q, Sum
+from django.db import connection
 from django.utils import timezone
 
 from .models import (
@@ -193,6 +194,24 @@ class PortalUserResolutionMixin:
             )
 
         return self._find_portal_user(external_user_key)
+
+
+class HealthAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+
+        return Response(
+            {
+                'status': 'ok',
+                'service': 'django-api',
+                'database': 'connected',
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class OTPRequestAPIView(PortalUserResolutionMixin, APIView):
