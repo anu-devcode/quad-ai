@@ -8,7 +8,8 @@ WORKDIR /app
 COPY requirements.fastapi.docker.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-COPY . /app
+COPY src/ /app/src/
+COPY models/ /app/models/
 
 EXPOSE 8001
 

@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.django.docker.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-COPY . /app
+COPY campus/ /app/campus/
+COPY docker/ /app/docker/
 
 RUN sed -i 's/\r$//' /app/docker/entrypoint.django.sh \
     && chmod +x /app/docker/entrypoint.django.sh

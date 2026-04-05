@@ -28,3 +28,15 @@ dist/
 
 # Node
 node_modules/
+
+# Large non-runtime assets (not needed for container builds)
+generated_transactions/
+*.pdf
+sample_transaction.png
+sample_transaction.svg
+
+# Reports and docs are not required in runtime images
+*.md
+
+# SQL dumps are not required at image build time
+*.sql
