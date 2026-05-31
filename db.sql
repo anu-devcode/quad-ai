@@ -1,4 +1,4 @@
--- Campus Payment System Database Schema (Final AI-Aligned Version)
+-- Quirass AI Payment System Database Schema (Production-Grade Version)
 
 -- 1. Enums and Extensions
 CREATE TYPE gender_type AS ENUM ('M', 'F', 'Other');

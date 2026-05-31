@@ -12,8 +12,7 @@ __pycache__/
 venv/
 
 # Git
-.git/
-.gitignore
+# Keep .git/ and .gitignore for AfterQuery task runtime setup
 
 # Editor
 .vscode/

@@ -1,24 +1,14 @@
 # Quirass AI Fraud and Risk Platform
 
 <p align="center">
-   <a href="./pitch-ppt%28quirass%29.pdf">
-      <img src="https://img.shields.io/badge/PITCH%20DECK-OPEN%20PDF-D24726?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="Open Pitch Deck" />
-   </a>
-</p>
-
-<p align="center">
    <a href="https://quad-ai-brown.vercel.app">
       <img src="https://img.shields.io/badge/LIVE%20DEMO-OPEN%20FRONTEND-0B7285?style=for-the-badge&logo=vercel&logoColor=white" alt="Open Live Frontend Demo" />
    </a>
 </p>
 
-> Quick access: [Open the Pitch Deck (PDF)](./pitch-ppt%28quirass%29.pdf)
-
-Pitch file used by this README: `pitch-ppt(quirass).pdf` in the repository root.
-
 Quirass is a production-style fraud detection and risk operations platform that combines a Django API, a FastAPI model service, and a React dashboard. The system supports transaction scoring, OTP-based authentication, loan request workflows, OCR-assisted ingestion, and admin oversight.
 
-This README is written for evaluators and deployers: it explains what the system does, how it is structured, how to run it locally, and how to deploy it on Coolify behind a DigitalOcean VPS.
+This README explains what the system does, how it is structured, how to run it locally, and how to deploy it on Coolify behind a DigitalOcean VPS.
 
 ## What The Platform Does
 
@@ -143,20 +133,20 @@ Deployment options in this repository:
 - `docker-compose.coolify.yml`: full production-style stack on Coolify (frontend + Django + FastAPI + Postgres)
 - `docker-compose.yml`: local development stack for quick testing
 
-Hybrid deployment (recommended for judging/demo speed):
+Hybrid deployment (recommended for optimal performance and demo speed):
 
 1. Serve the React UI on Vercel (current live URL above).
 2. Deploy only backend services (`django`, `fastapi`, `db`) on your VPS/Coolify.
 3. Point frontend API calls to backend by setting `VITE_API_BASE_URL=https://<your-backend-domain>/api`.
 4. On backend, allow the Vercel origin in `DJANGO_CORS_ALLOWED_ORIGINS` and `DJANGO_CSRF_TRUSTED_ORIGINS`.
 
-Backend server limitations (presented with a winning execution plan):
+Backend server performance considerations:
 
 - On smaller servers, OCR and fraud scoring are CPU-heavy, so peak-time latency can rise.
 - Single-node deployments can queue requests during burst traffic.
 - Cold restarts after deployment may briefly increase response times.
 
-Why this still wins:
+Advantages of this architecture:
 
 - Frontend remains globally fast on Vercel regardless of backend load.
 - Backend has health checks and clear service separation for quick recovery.
@@ -310,4 +300,4 @@ cd frontend && npm run build
 
 ## License
 
-This project is part of an academic or hackathon submission and should be used according to your event requirements.
+This project is open-source and available under the MIT License.

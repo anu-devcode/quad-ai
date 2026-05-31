@@ -6,7 +6,7 @@ function PricingPage() {
     {
        name: 'Developer Demo',
        price: 'Free',
-       desc: 'For builders and hackathons. Experience the engine in real-time.',
+       desc: 'For developers and creators. Experience the engine in real-time.',
        features: ['No-Code Dashboard', 'OCR Data Extraction', 'Instant Trust Scoring (Fixed Data)', 'Community Support', 'No API Access'],
        cta: 'Start Demo',
        popular: false

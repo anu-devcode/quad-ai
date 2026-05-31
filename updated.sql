@@ -51,7 +51,7 @@ CREATE TABLE transactions (
     purchase_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
-    -- New Hackathon-Ready Fields
+    -- Enhanced Fraud and Validation Fields
     data_source data_source_type DEFAULT 'manual',
     source_confidence source_confidence,
     parsing_success BOOLEAN DEFAULT TRUE,

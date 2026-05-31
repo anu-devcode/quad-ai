@@ -1,44 +1,44 @@
 asgiref==3.11.1
 Django==6.0.3
 djangorestframework==3.17.1
-django-cors-headers>=4.4.0
-dj-database-url>=2.3.0
-gunicorn>=23.0.0
-psycopg[binary]>=3.2.0
-whitenoise>=6.8.0
+django-cors-headers==4.9.0
+dj-database-url==3.1.2
+gunicorn==25.3.0
+psycopg[binary]==3.3.3
+whitenoise==6.12.0
 sqlparse==0.5.5
 tzdata==2026.1
+
 # Core Data Science
-pandas>=1.5.0
-numpy>=1.23.0
-scikit-learn>=1.8.0
+pandas==3.0.2
+numpy==2.4.4
+scikit-learn==1.8.0
 imbalanced-learn==0.13.0
-joblib>=1.2.0
+joblib==1.5.3
 
 # API & Server
-fastapi>=0.100.0
-pydantic>=2.7.0
-uvicorn>=0.23.0
-python-multipart>=0.0.6
+fastapi==0.135.3
+pydantic==2.12.5
+uvicorn==0.43.0
+python-multipart==0.0.22
 
 # Dashboard
-streamlit>=1.25.0
-requests>=2.31.0
+streamlit==1.56.0
+requests==2.33.1
 
 # Visualization
-matplotlib>=3.6.0
-seaborn>=0.12.0
+matplotlib==3.10.8
+seaborn==0.13.2
 
 # Utilities
-python-dateutil>=2.8.2
-pytz>=2022.7
+python-dateutil==2.9.0.post0
+pytz==2026.1.post1
 
 # OCR & Document Processing
-opencv-python>=4.10.0
-pytesseract>=0.3.10
-PyPDF2>=3.0.1
+opencv-python==4.13.0.92
+pytesseract==0.3.13
+PyPDF2==3.0.1
 
 # Testing
-httpx>=0.24.0
-pytest>=7.2.0
-
+httpx==0.28.1
+pytest==9.0.2
