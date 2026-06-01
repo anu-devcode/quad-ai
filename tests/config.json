@@ -1,0 +1,13 @@
+{
+    "base_commit": "8437809f10a234daf03ae2e6c785c529fd23d9cd",
+    "fail_to_pass": [
+        "tests.test_feedback_propagation.FeedbackPropagationTests.test_feedback_propagation_to_fraud",
+        "tests.test_feedback_propagation.FeedbackPropagationTests.test_feedback_propagation_to_legitimate"
+    ],
+    "pass_to_pass": [
+        "payments.tests.SMSParsingTests.test_parse_transaction_data_from_sms_mock",
+        "payments.tests.SMSIngestionEvaluationTests.test_ingest_sms_parses_and_scores_transaction",
+        "payments.tests.SMSIngestionEvaluationTests.test_upload_sms_supports_type_alias_and_returns_evaluation_shape",
+        "payments.tests.OTPLoginFlowTests.test_existing_profile_user_can_sign_in_without_onboarding"
+    ]
+}

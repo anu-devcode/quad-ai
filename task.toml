@@ -1,0 +1,24 @@
+[task]
+name = "feedback-propagation-cascade"
+description = "FraudFeedbackService.set_actual_outcome does not cascade status changes to associated transactions, assessments, trust profiles, or notifications"
+version = "1.0.0"
+
+[repo]
+url = "https://github.com/anu-devcode2/quad-ai.git"
+base_commit = "8437809f10a234daf03ae2e6c785c529fd23d9cd"
+
+[environment]
+dockerfile = "environment/Dockerfile"
+
+[tests]
+test_command = "PYTHONPATH=. python campus/manage.py test tests.test_feedback_propagation"
+config = "tests/config.json"
+
+[solution]
+solve_script = "solution/solve.sh"
+
+[metadata]
+difficulty = "medium"
+category = "logic-bug"
+language = "python"
+framework = "django"

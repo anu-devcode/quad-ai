@@ -1,21 +1,29 @@
 # Python
+**/__pycache__/
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.so
 .pytest_cache/
+**/.pytest_cache/
 .mypy_cache/
+**/.mypy_cache/
 
 # Virtual environments
 .venv/
 venv/
+**/.venv/
+**/venv/
 
 # Git
 # Keep .git/ and .gitignore for AfterQuery task runtime setup
 
 # Editor
 .vscode/
+**/.vscode/
+.idea/
+**/.idea/
 
 # Local databases and artifacts
 *.sqlite3
@@ -24,12 +32,16 @@ venv/
 # Build outputs
 build/
 dist/
+**/build/
+**/dist/
 
 # Node
 node_modules/
+**/node_modules/
 
 # Large non-runtime assets (not needed for container builds)
 generated_transactions/
+**/generated_transactions/
 *.pdf
 sample_transaction.png
 sample_transaction.svg
